@@ -1,4 +1,5 @@
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const FIRST_NAME_REGEX = /^[A-Za-z][A-Za-z '-]{0,49}$/;
 const USER_EXISTS_MESSAGES = ["already registered", "already been registered", "user already exists"];
 
 module.exports = async (req, res) => {
@@ -16,7 +17,12 @@ module.exports = async (req, res) => {
 
   try {
     const body = typeof req.body === "string" ? JSON.parse(req.body || "{}") : req.body || {};
+    const firstName = String(body.firstName || "").trim();
     const email = String(body.email || "").trim().toLowerCase();
+
+    if (!FIRST_NAME_REGEX.test(firstName)) {
+      return res.status(400).json({ error: "Please enter a valid first name." });
+    }
 
     if (!EMAIL_REGEX.test(email)) {
       return res.status(400).json({ error: "Please enter a valid email address." });
@@ -32,6 +38,9 @@ module.exports = async (req, res) => {
       body: JSON.stringify({
         email,
         create_user: true,
+        data: {
+          first_name: firstName,
+        },
       }),
     });
 

@@ -4,6 +4,15 @@ const deriveNameFromEmail = (email) => {
   return cleaned || "NEW USER";
 };
 
+const deriveNameFromUser = (user) => {
+  const metadataFirstName = String(user?.user_metadata?.first_name || "").trim();
+  if (metadataFirstName) {
+    return metadataFirstName;
+  }
+
+  return deriveNameFromEmail(user?.email);
+};
+
 module.exports = async (req, res) => {
   if (req.method !== "GET") {
     res.setHeader("Allow", "GET");
@@ -39,7 +48,7 @@ module.exports = async (req, res) => {
     );
 
     const names = sortedUsers
-      .map((user) => deriveNameFromEmail(user.email))
+      .map((user) => deriveNameFromUser(user))
       .filter(Boolean)
       .slice(0, 12);
 

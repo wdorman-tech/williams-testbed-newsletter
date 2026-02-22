@@ -142,6 +142,7 @@
         gap: 12px;
       }
 
+      input[type="text"],
       input[type="email"] {
         width: 100%;
         background: transparent;
@@ -152,10 +153,12 @@
         border-radius: 0;
       }
 
+      input[type="text"]::placeholder,
       input[type="email"]::placeholder {
         color: #8f8f8a;
       }
 
+      input[type="text"]:focus,
       input[type="email"]:focus {
         outline: none;
         border-color: var(--text);
@@ -265,6 +268,7 @@
           gap: 10px;
         }
 
+        input[type="text"],
         input[type="email"],
         button {
           min-height: 46px;
@@ -336,6 +340,14 @@
       </p>
 
       <form id="signup-form" novalidate>
+        <input
+          id="first-name"
+          type="text"
+          placeholder="First name"
+          autocomplete="given-name"
+          maxlength="50"
+          required
+        />
         <input id="email" type="email" placeholder="your@email.com" autocomplete="email" required />
         <button type="submit">Get Early Access</button>
         <p class="meta">No spam. One email a week. Unsubscribe anytime.</p>
@@ -361,6 +373,7 @@
 
     <script>
       const form = document.getElementById("signup-form");
+      const firstNameInput = document.getElementById("first-name");
       const emailInput = document.getElementById("email");
       const confirmation = document.getElementById("confirmation");
       const submitButton = form.querySelector('button[type="submit"]');
@@ -368,6 +381,10 @@
       const socialProof = document.getElementById("social-proof");
       const SPOT_LIMIT = 100;
 
+      const isValidFirstName = (value) => {
+        const trimmed = value.trim();
+        return /^[A-Za-z][A-Za-z '-]{0,49}$/.test(trimmed);
+      };
       const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 
       const buildTickerItem = (names, isHidden = false) => {
@@ -435,7 +452,13 @@
       form.addEventListener("submit", async (event) => {
         event.preventDefault();
 
+        const firstName = firstNameInput.value.trim();
         const email = emailInput.value.trim();
+
+        if (!isValidFirstName(firstName)) {
+          firstNameInput.focus();
+          return;
+        }
 
         if (!isValidEmail(email)) {
           emailInput.focus();
@@ -449,7 +472,7 @@
           const response = await fetch("/api/subscribe", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email }),
+            body: JSON.stringify({ firstName, email }),
           });
 
           const result = await response.json();
