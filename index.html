@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>William's Testbed</title>
+    <link rel="icon" type="image/png" href="photos/blacklily_transparent.png" />
     <style>
       :root {
         --bg: #0a0a0a;
@@ -380,12 +381,35 @@
       const tickerTrack = document.getElementById("signup-ticker-track");
       const socialProof = document.getElementById("social-proof");
       const SPOT_LIMIT = 100;
+      const ACCOUNT_COOKIE_NAME = "wl_account_created";
+      const RETURNING_MESSAGE = "Check your email 9:00am EST every Monday.";
 
       const isValidFirstName = (value) => {
         const trimmed = value.trim();
         return /^[A-Za-z][A-Za-z '-]{0,49}$/.test(trimmed);
       };
       const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+      const getCookieValue = (name) => {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) {
+          return parts.pop().split(";").shift() || "";
+        }
+        return "";
+      };
+
+      const setCookie = (name, value, maxAgeSeconds) => {
+        document.cookie = `${name}=${value}; Path=/; Max-Age=${maxAgeSeconds}; SameSite=Lax`;
+      };
+
+      const hasCreatedAccount = () => getCookieValue(ACCOUNT_COOKIE_NAME) === "1";
+
+      const showReturningUserMessage = () => {
+        form.classList.add("hidden");
+        confirmation.classList.remove("hidden");
+        confirmation.classList.remove("error");
+        confirmation.textContent = RETURNING_MESSAGE;
+      };
 
       const buildTickerItem = (names, isHidden = false) => {
         const item = document.createElement("span");
@@ -481,10 +505,8 @@
             throw new Error(result.error || "Could not subscribe right now.");
           }
 
-          form.classList.add("hidden");
-          confirmation.classList.remove("hidden");
-          confirmation.classList.remove("error");
-          confirmation.textContent = "Check your email for the one-time sign-in code.";
+          setCookie(ACCOUNT_COOKIE_NAME, "1", 60 * 60 * 24 * 365);
+          showReturningUserMessage();
           loadRecentSignups();
         } catch (error) {
           confirmation.classList.remove("hidden");
@@ -495,6 +517,10 @@
           submitButton.textContent = "Get Early Access";
         }
       });
+
+      if (hasCreatedAccount()) {
+        showReturningUserMessage();
+      }
 
       loadRecentSignups();
     </script>

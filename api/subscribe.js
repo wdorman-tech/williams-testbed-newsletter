@@ -49,9 +49,11 @@ module.exports = async (req, res) => {
       const loweredBody = responseBody.toLowerCase();
       const isDuplicate = USER_EXISTS_MESSAGES.some((message) => loweredBody.includes(message));
 
-      if (!isDuplicate) {
-        return res.status(500).json({ error: "Could not save your email right now." });
+      if (isDuplicate) {
+        return res.status(409).json({ error: "This email is already registered." });
       }
+
+      return res.status(500).json({ error: "Could not save your email right now." });
     }
 
     return res.status(200).json({ ok: true });
