@@ -9,9 +9,9 @@ module.exports = async (req, res) => {
   }
 
   const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
 
-  if (!supabaseUrl || !supabaseServiceRoleKey) {
+  if (!supabaseUrl || !supabaseAnonKey) {
     return res.status(500).json({ error: "Server is not configured." });
   }
 
@@ -31,8 +31,8 @@ module.exports = async (req, res) => {
     const response = await fetch(`${supabaseUrl}/auth/v1/otp`, {
       method: "POST",
       headers: {
-        apikey: supabaseServiceRoleKey,
-        Authorization: `Bearer ${supabaseServiceRoleKey}`,
+        apikey: supabaseAnonKey,
+        Authorization: `Bearer ${supabaseAnonKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
