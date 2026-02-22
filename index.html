@@ -29,7 +29,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 24px;
+        padding: 72px 24px 24px;
         animation: fadeIn 500ms ease-out;
       }
 
@@ -47,6 +47,7 @@
         max-width: 520px;
       }
 
+      .signup-ticker,
       .eyebrow,
       .subheadline,
       .meta,
@@ -58,11 +59,66 @@
         font-family: "Courier New", Courier, monospace;
       }
 
+      .signup-ticker {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 38px;
+        border-bottom: 1px solid #1f1f1f;
+        background: rgba(10, 10, 10, 0.96);
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        z-index: 1000;
+      }
+
+      .signup-ticker-track {
+        display: flex;
+        width: max-content;
+        white-space: nowrap;
+        animation: ticker-scroll 28s linear infinite;
+        will-change: transform;
+      }
+
+      .signup-ticker-item {
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        padding-right: 42px;
+      }
+
+      .signup-ticker-name {
+        color: var(--muted);
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .signup-ticker-separator {
+        color: var(--accent);
+        font-weight: 700;
+      }
+
+      @keyframes ticker-scroll {
+        from {
+          transform: translateX(0);
+        }
+        to {
+          transform: translateX(-50%);
+        }
+      }
+
       .eyebrow {
         color: var(--accent);
         font-size: 0.8rem;
         letter-spacing: 0.08em;
         margin: 0 0 16px 0;
+      }
+
+      .pricing-note {
+        margin: -8px 0 18px 0;
+        color: var(--muted);
+        font-family: "Courier New", Courier, monospace;
+        font-size: 0.72rem;
       }
 
       h1 {
@@ -108,7 +164,7 @@
         border: none;
         border-radius: 0;
         background: var(--accent);
-        color: #ffffff;
+        color: #000000;
         padding: 12px 14px;
         font-size: 0.95rem;
         cursor: pointer;
@@ -163,7 +219,7 @@
 
       @media (max-width: 540px) {
         body {
-          padding: 20px;
+          padding: 68px 20px 20px;
         }
 
         .subheadline {
@@ -173,8 +229,16 @@
     </style>
   </head>
   <body>
+    <div class="signup-ticker" aria-label="Recent signups">
+      <div id="signup-ticker-track" class="signup-ticker-track">
+        <span class="signup-ticker-item">LOADING \\ LOADING \\ LOADING \\</span>
+        <span class="signup-ticker-item" aria-hidden="true">LOADING \\ LOADING \\ LOADING \\</span>
+      </div>
+    </div>
+
     <main class="container">
       <p class="eyebrow">EARLY ACCESS — FIRST 100 FREE</p>
+      <p class="pricing-note">$5/mo regular access price</p>
       <h1>What's running on my testbed this week.</h1>
       <p class="subheadline">
         A weekly newsletter for people who want to actually use AI to make money — not just read
@@ -189,9 +253,7 @@
       </form>
 
       <p id="confirmation" class="confirmation hidden">You're on the list. Watch your inbox.</p>
-      <p class="social-proof">
-        Spots filling fast — first 100 subscribers get lifetime free access.
-      </p>
+      <p id="social-proof" class="social-proof">100 Spots left — first 100 subscribers get lifetime free access.</p>
 
       <div class="footer-brand">
         <a href="https://blacklilyaccelerator.com" aria-label="Visit Black Lily Accelerator">
@@ -213,8 +275,73 @@
       const emailInput = document.getElementById("email");
       const confirmation = document.getElementById("confirmation");
       const submitButton = form.querySelector('button[type="submit"]');
+      const tickerTrack = document.getElementById("signup-ticker-track");
+      const socialProof = document.getElementById("social-proof");
+      const SPOT_LIMIT = 100;
 
       const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+
+      const buildTickerItem = (names, isHidden = false) => {
+        const item = document.createElement("span");
+        item.className = "signup-ticker-item";
+
+        names.forEach((name, index) => {
+          const nameNode = document.createElement("span");
+          nameNode.className = "signup-ticker-name";
+          nameNode.textContent = String(name).trim().toUpperCase();
+          item.appendChild(nameNode);
+
+          if (index < names.length - 1) {
+            const separatorNode = document.createElement("span");
+            separatorNode.className = "signup-ticker-separator";
+            separatorNode.textContent = " \\\\ ";
+            item.appendChild(separatorNode);
+          }
+        });
+
+        if (isHidden) {
+          item.setAttribute("aria-hidden", "true");
+        }
+
+        return item;
+      };
+
+      const setTickerNames = (names) => {
+        const cleanNames = names.map((name) => String(name).trim()).filter(Boolean);
+        tickerTrack.innerHTML = "";
+        tickerTrack.append(buildTickerItem(cleanNames), buildTickerItem(cleanNames, true));
+      };
+
+      const loadRecentSignups = async () => {
+        try {
+          const response = await fetch("/api/recent-signups");
+          const data = await response.json();
+
+          if (!response.ok || !Array.isArray(data.names)) {
+            throw new Error("Could not load signups.");
+          }
+
+          const names = data.names
+            .map((name) => String(name).trim().toUpperCase())
+            .filter(Boolean)
+            .slice(0, 12);
+
+          if (names.length > 0) {
+            setTickerNames(names);
+          } else {
+            setTickerNames(["EARLY ACCESS", "FIRST 100 FREE", "JOINING NOW"]);
+          }
+
+          const totalSignups = Number(data.totalSignups);
+          const spotsLeft = Number.isFinite(totalSignups)
+            ? Math.max(0, SPOT_LIMIT - totalSignups)
+            : SPOT_LIMIT;
+          socialProof.textContent = `${spotsLeft} Spots left — first 100 subscribers get lifetime free access.`;
+        } catch (error) {
+          setTickerNames(["EARLY ACCESS", "FIRST 100 FREE", "JOINING NOW"]);
+          socialProof.textContent = `${SPOT_LIMIT} Spots left — first 100 subscribers get lifetime free access.`;
+        }
+      };
 
       form.addEventListener("submit", async (event) => {
         event.preventDefault();
@@ -246,6 +373,7 @@
           confirmation.classList.remove("hidden");
           confirmation.classList.remove("error");
           confirmation.textContent = "You're on the list. Watch your inbox.";
+          loadRecentSignups();
         } catch (error) {
           confirmation.classList.remove("hidden");
           confirmation.classList.add("error");
@@ -255,6 +383,8 @@
           submitButton.textContent = "Get Early Access";
         }
       });
+
+      loadRecentSignups();
     </script>
   </body>
 </html>
