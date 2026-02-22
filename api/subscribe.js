@@ -1,6 +1,7 @@
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const FIRST_NAME_REGEX = /^[A-Za-z][A-Za-z '-]{0,49}$/;
 const USER_EXISTS_MESSAGES = ["already registered", "already been registered", "user already exists"];
+const DEFAULT_SUBSCRIBE_ERROR = "Could not save your email right now.";
 
 module.exports = async (req, res) => {
   if (req.method !== "POST") {
@@ -46,18 +47,32 @@ module.exports = async (req, res) => {
 
     if (!response.ok) {
       const responseBody = await response.text();
-      const loweredBody = responseBody.toLowerCase();
+      let parsedBody = null;
+
+      try {
+        parsedBody = JSON.parse(responseBody);
+      } catch {
+        parsedBody = null;
+      }
+
+      const upstreamMessage = String(
+        parsedBody?.msg || parsedBody?.error_description || parsedBody?.error || responseBody || ""
+      ).trim();
+      const loweredBody = `${responseBody} ${upstreamMessage}`.toLowerCase();
       const isDuplicate = USER_EXISTS_MESSAGES.some((message) => loweredBody.includes(message));
 
       if (isDuplicate) {
         return res.status(409).json({ error: "This email is already registered." });
       }
 
-      return res.status(500).json({ error: "Could not save your email right now." });
+      const statusCode = response.status >= 400 && response.status < 500 ? response.status : 500;
+      const safeMessage = upstreamMessage || DEFAULT_SUBSCRIBE_ERROR;
+
+      return res.status(statusCode).json({ error: safeMessage });
     }
 
     return res.status(200).json({ ok: true });
   } catch (error) {
-    return res.status(500).json({ error: "Could not save your email right now." });
+    return res.status(500).json({ error: DEFAULT_SUBSCRIBE_ERROR });
   }
 };
