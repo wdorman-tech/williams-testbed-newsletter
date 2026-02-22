@@ -8,8 +8,8 @@
       :root {
         --bg: #0a0a0a;
         --text: #f5f5f0;
-        --muted: #b9b9b2;
-        --accent: #e63946;
+        --muted: #8f8f8a;
+        --accent: #32e875;
       }
 
       * {
@@ -129,6 +129,11 @@
       .confirmation {
         margin: 0;
         font-size: 0.95rem;
+        color: var(--accent);
+      }
+
+      .confirmation.error {
+        color: #ff8f8f;
       }
 
       .hidden {
@@ -136,10 +141,24 @@
       }
 
       .footer-line {
-        margin: 42px 0 0 0;
+        margin: 0;
         color: #85857f;
         font-size: 0.66rem;
         line-height: 1.5;
+      }
+
+      .footer-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 42px;
+      }
+
+      .footer-logo {
+        width: 82px;
+        height: auto;
+        display: block;
+        flex: 0 0 auto;
       }
 
       @media (max-width: 540px) {
@@ -174,20 +193,30 @@
         Spots filling fast — first 100 subscribers get lifetime free access.
       </p>
 
-      <p class="footer-line">
-        William's Testbed is a publication of Black Lily AI Accelerator — [blacklilyaccel.com]
-      </p>
+      <div class="footer-brand">
+        <a href="https://blacklilyaccelerator.com" aria-label="Visit Black Lily Accelerator">
+          <img
+            class="footer-logo"
+            src="photos/blacklily_transparent.png"
+            alt="Black Lily Accelerator logo"
+            onerror="this.style.display='none'"
+          />
+        </a>
+        <p class="footer-line">
+          William's Testbed is a publication of Black Lily Accelerator — [blacklilyaccelerator.com]
+        </p>
+      </div>
     </main>
 
     <script>
-      const submissions = [];
       const form = document.getElementById("signup-form");
       const emailInput = document.getElementById("email");
       const confirmation = document.getElementById("confirmation");
+      const submitButton = form.querySelector('button[type="submit"]');
 
       const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 
-      form.addEventListener("submit", (event) => {
+      form.addEventListener("submit", async (event) => {
         event.preventDefault();
 
         const email = emailInput.value.trim();
@@ -197,11 +226,34 @@
           return;
         }
 
-        submissions.push(email);
-        console.log("Captured emails:", submissions);
+        submitButton.disabled = true;
+        submitButton.textContent = "Submitting...";
 
-        form.classList.add("hidden");
-        confirmation.classList.remove("hidden");
+        try {
+          const response = await fetch("/api/subscribe", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email }),
+          });
+
+          const result = await response.json();
+
+          if (!response.ok) {
+            throw new Error(result.error || "Could not subscribe right now.");
+          }
+
+          form.classList.add("hidden");
+          confirmation.classList.remove("hidden");
+          confirmation.classList.remove("error");
+          confirmation.textContent = "You're on the list. Watch your inbox.";
+        } catch (error) {
+          confirmation.classList.remove("hidden");
+          confirmation.classList.add("error");
+          confirmation.textContent = error.message;
+        } finally {
+          submitButton.disabled = false;
+          submitButton.textContent = "Get Early Access";
+        }
       });
     </script>
   </body>
