@@ -4,27 +4,6 @@ const deriveNameFromEmail = (email) => {
   return cleaned || "NEW USER";
 };
 
-const getTotalSignups = async (supabaseUrl, supabaseTable, requestHeaders) => {
-  const countResponse = await fetch(
-    `${supabaseUrl}/rest/v1/${encodeURIComponent(supabaseTable)}?select=email&limit=1`,
-    {
-      headers: {
-        ...requestHeaders,
-        Prefer: "count=exact",
-      },
-    }
-  );
-
-  if (!countResponse.ok) {
-    return null;
-  }
-
-  const contentRange = countResponse.headers.get("content-range") || "";
-  const total = Number(contentRange.split("/")[1]);
-
-  return Number.isFinite(total) ? total : null;
-};
-
 module.exports = async (req, res) => {
   if (req.method !== "GET") {
     res.setHeader("Allow", "GET");
@@ -33,7 +12,6 @@ module.exports = async (req, res) => {
 
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const supabaseTable = process.env.SUPABASE_TABLE || "newsletter_subscribers";
 
   if (!supabaseUrl || !supabaseServiceRoleKey) {
     return res.status(500).json({ error: "Server is not configured." });
@@ -45,31 +23,27 @@ module.exports = async (req, res) => {
   };
 
   try {
-    let response = await fetch(
-      `${supabaseUrl}/rest/v1/${encodeURIComponent(
-        supabaseTable
-      )}?select=email&order=created_at.desc.nullslast&limit=12`,
-      { headers: requestHeaders }
-    );
-
-    if (!response.ok) {
-      response = await fetch(
-        `${supabaseUrl}/rest/v1/${encodeURIComponent(supabaseTable)}?select=email&limit=12`,
-        { headers: requestHeaders }
-      );
-    }
+    const response = await fetch(`${supabaseUrl}/auth/v1/admin/users?page=1&per_page=1000`, {
+      headers: requestHeaders,
+    });
 
     if (!response.ok) {
       return res.status(500).json({ error: "Could not fetch recent signups." });
     }
 
-    const rows = await response.json();
-    const names = rows
-      .map((row) => deriveNameFromEmail(row.email))
+    const payload = await response.json();
+    const users = Array.isArray(payload.users) ? payload.users : [];
+    const usersWithEmail = users.filter((user) => typeof user.email === "string" && user.email.trim());
+    const sortedUsers = usersWithEmail.sort(
+      (a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()
+    );
+
+    const names = sortedUsers
+      .map((user) => deriveNameFromEmail(user.email))
       .filter(Boolean)
       .slice(0, 12);
 
-    const totalSignups = await getTotalSignups(supabaseUrl, supabaseTable, requestHeaders);
+    const totalSignups = usersWithEmail.length;
 
     return res.status(200).json({ names, totalSignups });
   } catch (error) {

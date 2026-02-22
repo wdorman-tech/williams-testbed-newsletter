@@ -1,4 +1,10 @@
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const USER_EXISTS_MESSAGES = ["already registered", "already been registered", "user already exists"];
+
+const generatePassword = () => {
+  const random = Math.random().toString(36).slice(2);
+  return `wl_${random}${Date.now().toString(36)}A!`;
+};
 
 module.exports = async (req, res) => {
   if (req.method !== "POST") {
@@ -8,7 +14,6 @@ module.exports = async (req, res) => {
 
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const supabaseTable = process.env.SUPABASE_TABLE || "newsletter_subscribers";
 
   if (!supabaseUrl || !supabaseServiceRoleKey) {
     return res.status(500).json({ error: "Server is not configured." });
@@ -22,22 +27,28 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: "Please enter a valid email address." });
     }
 
-    const response = await fetch(
-      `${supabaseUrl}/rest/v1/${encodeURIComponent(supabaseTable)}?on_conflict=email`,
-      {
-        method: "POST",
-        headers: {
-          apikey: supabaseServiceRoleKey,
-          Authorization: `Bearer ${supabaseServiceRoleKey}`,
-          "Content-Type": "application/json",
-          Prefer: "resolution=ignore-duplicates,return=minimal",
-        },
-        body: JSON.stringify([{ email }]),
-      }
-    );
+    const response = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
+      method: "POST",
+      headers: {
+        apikey: supabaseServiceRoleKey,
+        Authorization: `Bearer ${supabaseServiceRoleKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        password: generatePassword(),
+        email_confirm: true,
+      }),
+    });
 
     if (!response.ok) {
-      return res.status(500).json({ error: "Could not save your email right now." });
+      const responseBody = await response.text();
+      const loweredBody = responseBody.toLowerCase();
+      const isDuplicate = USER_EXISTS_MESSAGES.some((message) => loweredBody.includes(message));
+
+      if (!isDuplicate) {
+        return res.status(500).json({ error: "Could not save your email right now." });
+      }
     }
 
     return res.status(200).json({ ok: true });

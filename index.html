@@ -45,6 +45,7 @@
       .container {
         width: 100%;
         max-width: 520px;
+        margin: 0 auto;
       }
 
       .signup-ticker,
@@ -126,6 +127,7 @@
         font-size: clamp(2rem, 6vw, 3.35rem);
         line-height: 1.05;
         font-weight: 700;
+        text-wrap: balance;
       }
 
       .subheadline {
@@ -145,7 +147,7 @@
         background: transparent;
         color: var(--text);
         border: 1px solid #454545;
-        padding: 12px 14px;
+        padding: 14px;
         font-size: 0.95rem;
         border-radius: 0;
       }
@@ -165,7 +167,7 @@
         border-radius: 0;
         background: var(--accent);
         color: #000000;
-        padding: 12px 14px;
+        padding: 14px;
         font-size: 0.95rem;
         cursor: pointer;
       }
@@ -219,11 +221,98 @@
 
       @media (max-width: 540px) {
         body {
-          padding: 68px 20px 20px;
+          align-items: flex-start;
+          padding: 62px 16px 20px;
+        }
+
+        .signup-ticker {
+          height: 34px;
+        }
+
+        .signup-ticker-item {
+          font-size: 0.66rem;
+          letter-spacing: 0.06em;
+          padding-right: 30px;
+        }
+
+        .container {
+          max-width: 100%;
+        }
+
+        .eyebrow {
+          margin-bottom: 12px;
+          font-size: 0.72rem;
+        }
+
+        .pricing-note {
+          margin: -4px 0 14px 0;
+          font-size: 0.66rem;
+        }
+
+        h1 {
+          margin-bottom: 12px;
+          font-size: clamp(1.65rem, 10vw, 2.2rem);
+          line-height: 1.08;
         }
 
         .subheadline {
+          margin-bottom: 22px;
+          font-size: 0.9rem;
+          line-height: 1.6;
+        }
+
+        form {
+          gap: 10px;
+        }
+
+        input[type="email"],
+        button {
+          min-height: 46px;
           font-size: 0.92rem;
+        }
+
+        .meta {
+          font-size: 0.68rem;
+        }
+
+        .social-proof {
+          margin-top: 12px;
+          font-size: 0.74rem;
+          line-height: 1.45;
+        }
+
+        .footer-brand {
+          margin-top: 30px;
+          gap: 12px;
+          align-items: flex-start;
+          flex-wrap: wrap;
+        }
+
+        .footer-logo {
+          width: 72px;
+        }
+
+        .footer-line {
+          font-size: 0.64rem;
+        }
+      }
+
+      @media (max-width: 360px) {
+        body {
+          padding-left: 12px;
+          padding-right: 12px;
+        }
+
+        h1 {
+          font-size: clamp(1.5rem, 11vw, 1.95rem);
+        }
+
+        .subheadline {
+          font-size: 0.86rem;
+        }
+
+        .signup-ticker-item {
+          font-size: 0.62rem;
         }
       }
     </style>
