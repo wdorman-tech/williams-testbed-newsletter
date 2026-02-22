@@ -341,7 +341,7 @@
         <p class="meta">No spam. One email a week. Unsubscribe anytime.</p>
       </form>
 
-      <p id="confirmation" class="confirmation hidden">You're on the list. Watch your inbox.</p>
+      <p id="confirmation" class="confirmation hidden">Check your email for the one-time sign-in code.</p>
       <p id="social-proof" class="social-proof">100 Spots left — first 100 subscribers get lifetime free access.</p>
 
       <div class="footer-brand">
@@ -461,7 +461,7 @@
           form.classList.add("hidden");
           confirmation.classList.remove("hidden");
           confirmation.classList.remove("error");
-          confirmation.textContent = "You're on the list. Watch your inbox.";
+          confirmation.textContent = "Check your email for the one-time sign-in code.";
           loadRecentSignups();
         } catch (error) {
           confirmation.classList.remove("hidden");

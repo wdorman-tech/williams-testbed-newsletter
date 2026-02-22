@@ -1,11 +1,6 @@
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const USER_EXISTS_MESSAGES = ["already registered", "already been registered", "user already exists"];
 
-const generatePassword = () => {
-  const random = Math.random().toString(36).slice(2);
-  return `wl_${random}${Date.now().toString(36)}A!`;
-};
-
 module.exports = async (req, res) => {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
@@ -27,7 +22,7 @@ module.exports = async (req, res) => {
       return res.status(400).json({ error: "Please enter a valid email address." });
     }
 
-    const response = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
+    const response = await fetch(`${supabaseUrl}/auth/v1/otp`, {
       method: "POST",
       headers: {
         apikey: supabaseServiceRoleKey,
@@ -36,8 +31,7 @@ module.exports = async (req, res) => {
       },
       body: JSON.stringify({
         email,
-        password: generatePassword(),
-        email_confirm: true,
+        create_user: true,
       }),
     });
 
