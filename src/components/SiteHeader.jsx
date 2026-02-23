@@ -36,9 +36,14 @@ export default function SiteHeader() {
         ))}
       </nav>
       <div className="header-actions">
-        <Link to="/work-with-me" className="work-with-me-button">
+        <a
+          href="https://blacklilyaccelerator.com"
+          target="_blank"
+          rel="noreferrer"
+          className="work-with-me-button"
+        >
           Work with Me
-        </Link>
+        </a>
       </div>
     </header>
   );

@@ -39,8 +39,10 @@ export default function ArticlePage() {
         <span>{article.readMinutes} min read</span>
       </p>
       <h1>{article.title}</h1>
-      <p className="article-author">By {article.author}</p>
-      <ArticleActions article={article} compact />
+      <div className="article-byline-row">
+        <p className="article-author">{article.author}</p>
+        <ArticleActions article={article} compact />
+      </div>
       <div className="article-body">
         {article.body.map((paragraph, index) => (
           <p key={`${article.id}-paragraph-${index}`}>{paragraph}</p>
