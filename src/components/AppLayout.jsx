@@ -12,6 +12,7 @@ export default function AppLayout({ children }) {
   const [isPublishOpen, setIsPublishOpen] = useState(false);
   const isAdmin = profile?.role === "admin";
   const isDashboardRoute = user && location.pathname === "/dashboard";
+  const isPublicLandingRoute = !user && location.pathname === "/";
 
   const handleSignOut = async () => {
     try {
@@ -24,7 +25,7 @@ export default function AppLayout({ children }) {
   };
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${isPublicLandingRoute ? "landing-app-shell" : ""}`}>
       <TopBanner />
       {isDashboardRoute ? (
         <div className="dashboard-shell">
@@ -61,6 +62,8 @@ export default function AppLayout({ children }) {
             }}
           />
         </div>
+      ) : isPublicLandingRoute ? (
+        <main className="landing-main">{children}</main>
       ) : (
         <main className="main-content page-surface">
           <nav className="nav-row">
