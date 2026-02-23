@@ -24,6 +24,11 @@ export function AppStateProvider({ children }) {
     return "light";
   });
 
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const login = () => setIsLoggedIn(true);
+  const logout = () => setIsLoggedIn(false);
+
   const toggleTheme = () => {
     setTheme((prev) => {
       const next = prev === "light" ? "dark" : "light";
@@ -57,7 +62,9 @@ export function AppStateProvider({ children }) {
   };
 
   const copyArticleLink = async (slug) => {
-    const url = `${window.location.origin}/article/${slug}`;
+    const basePath = import.meta.env.BASE_URL || "/";
+    const normalizedBase = basePath.endsWith("/") ? basePath : `${basePath}/`;
+    const url = new URL(`article/${slug}`, `${window.location.origin}${normalizedBase}`).toString();
     try {
       await navigator.clipboard.writeText(url);
     } catch {
@@ -77,12 +84,15 @@ export function AppStateProvider({ children }) {
       savedIds,
       lastCopiedSlug,
       theme,
+      isLoggedIn,
+      login,
+      logout,
       toggleHeart,
       toggleSave,
       copyArticleLink,
       toggleTheme,
     }),
-    [heartedIds, lastCopiedSlug, savedIds, theme],
+    [heartedIds, lastCopiedSlug, savedIds, theme, isLoggedIn],
   );
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;

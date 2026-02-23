@@ -25,6 +25,7 @@
 
 * {
   box-sizing: border-box;
+  cursor: none; /* Hide default cursor for custom cursor */
 }
 
 html,
@@ -40,6 +41,52 @@ body {
   color: var(--text);
   line-height: 1.6;
   transition: background-color 0.3s ease, color 0.3s ease;
+  overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
+/* Custom Cursor */
+.cursor-follower {
+  position: fixed;
+  width: 20px;
+  height: 20px;
+  background: rgba(46, 139, 87, 0.5);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: width 0.2s cubic-bezier(0.19, 1, 0.22, 1), height 0.2s cubic-bezier(0.19, 1, 0.22, 1), background-color 0.2s ease;
+  mix-blend-mode: difference;
+}
+
+.cursor-follower.is-hovering {
+  width: 40px;
+  height: 40px;
+  background: rgba(46, 139, 87, 0.2);
+  border: 1px solid rgba(46, 139, 87, 0.8);
+}
+
+.cursor-follower.is-clicking {
+  width: 15px;
+  height: 15px;
+  background: rgba(46, 139, 87, 0.8);
+}
+
+body:hover .cursor-follower {
+  opacity: 1;
+}
+
+/* Grain Overlay */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9998;
+  opacity: 0.4;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -54,12 +101,138 @@ a {
   color: inherit;
   text-decoration: none;
   transition: color 0.2s ease;
+  cursor: none; /* Custom cursor handles this */
 }
 
 a:hover {
   color: var(--accent);
 }
 
+/* Signup Page Styles */
+.signup-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.signup-content {
+  max-width: 600px;
+  width: 100%;
+  text-align: center;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+.signup-title {
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  font-weight: 700;
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.signup-form {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.input-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.signup-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid var(--border);
+  padding: 1rem 0;
+  font-family: var(--font-body);
+  font-size: 1.2rem;
+  color: var(--text);
+  text-align: center;
+  outline: none;
+  transition: border-color 0.3s ease;
+  cursor: none;
+}
+
+.signup-input:focus {
+  border-bottom-color: var(--text);
+}
+
+.signup-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
+.signup-button {
+  background: transparent;
+  border: none;
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  cursor: none;
+  position: relative;
+  padding: 0.5rem 1rem;
+  overflow: hidden;
+}
+
+/* Green underline animation */
+.signup-button::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background-color: var(--accent);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.signup-button:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+.login-link-container {
+  margin-top: auto;
+  padding-top: 2rem;
+}
+
+.login-link {
+  background: none;
+  border: none;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: none;
+  opacity: 0.6;
+  transition: opacity 0.3s ease;
+}
+
+.login-link:hover {
+  opacity: 1;
+  color: var(--text);
+}
+
+/* App Shell & Other Styles (Preserved) */
 .app-shell {
   min-height: 100vh;
   display: flex;
@@ -112,6 +285,7 @@ a:hover {
   letter-spacing: 0.05em;
   padding-bottom: 2px;
   border-bottom: 2px solid transparent;
+  cursor: none;
 }
 
 .nav-link:hover,
@@ -139,6 +313,7 @@ a:hover {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   transition: all 0.2s ease;
+  cursor: none;
 }
 
 .work-with-me-button:hover,
@@ -265,6 +440,7 @@ a:hover {
 
 .article-title a {
   text-decoration: none;
+  cursor: none;
 }
 
 .article-title a:hover {
@@ -295,7 +471,7 @@ a:hover {
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--text-muted);
-  cursor: pointer;
+  cursor: none;
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
@@ -318,7 +494,7 @@ a:hover {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
+  cursor: none;
   transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
 }
 
@@ -384,6 +560,7 @@ a:hover {
   font-family: var(--font-heading);
   font-size: 1rem;
   display: block;
+  cursor: none;
 }
 
 .empty-state {
@@ -485,7 +662,7 @@ a:hover {
   align-items: center;
   justify-content: center;
   font-size: 1.2rem;
-  cursor: pointer;
+  cursor: none;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   transition: transform 0.2s ease, color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 }
@@ -514,10 +691,26 @@ a:hover {
 }
 
 @media (max-width: 600px) {
+  .page-content {
+    width: min(1000px, 100% - 1.25rem);
+    padding: 1.75rem 0 4.5rem;
+  }
+
   .site-header {
+    position: static;
     flex-direction: column;
     align-items: flex-start;
-    gap: 1rem;
+    gap: 0.75rem;
+    padding: 0.85rem 0.75rem;
+  }
+
+  .brand-name {
+    font-size: 1.05rem;
+  }
+
+  .brand-mark {
+    width: 28px;
+    height: 28px;
   }
   
   .header-actions {
@@ -529,9 +722,85 @@ a:hover {
     width: 100%;
     overflow-x: auto;
     padding-bottom: 0.5rem;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .nav-link {
+    flex: 0 0 auto;
+    font-size: 0.78rem;
+  }
+
+  .work-with-me-button {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.72rem;
+  }
+
+  .page-intro {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+  }
+
+  .page-intro h1 {
+    font-size: clamp(1.9rem, 8vw, 2.4rem);
+  }
+
+  .page-intro p {
+    font-size: 1rem;
+  }
+
+  .section-title {
+    font-size: 1.3rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .article-card-top {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .article-meta {
+    font-size: 0.72rem;
+    line-height: 1.4;
+  }
+
+  .article-title {
+    font-size: 1.4rem;
+  }
+
+  .article-excerpt {
+    font-size: 1rem;
+  }
+
+  .article-body {
+    font-size: 1.05rem;
+    line-height: 1.7;
+  }
+
+  .info-card,
+  .settings-card {
+    padding: 1.25rem;
+  }
+
+  .setting-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .credentials-copy {
+    font-size: 0.92rem;
+    line-height: 1.65;
+  }
+
+  .saved-list a {
+    font-size: 0.95rem;
   }
 
   .theme-dock-button {
+    width: 2.45rem;
+    height: 2.45rem;
+    font-size: 1rem;
     right: 1rem;
     bottom: 1rem;
   }
