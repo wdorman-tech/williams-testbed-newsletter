@@ -1,4 +1,5 @@
 import { Link, NavLink } from "react-router-dom";
+import brandMark from "../../photos/blacklily_transparent.png";
 
 const navItems = [
   { to: "/", label: "Home", end: true },
@@ -17,7 +18,7 @@ export default function SiteHeader() {
     <header className="site-header">
       <Link to="/" className="brand-name">
         <img
-          src="/photos/blacklily_transparent.png"
+          src={brandMark}
           alt="William's Testbed"
           className="brand-mark"
         />
