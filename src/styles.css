@@ -8,8 +8,8 @@
   --accent: #2e8b57; /* Darker green for light mode readability */
   --accent-bg: rgba(46, 139, 87, 0.1);
   --border: #e0e0e0;
-  --font-heading: "Playfair Display", serif;
-  --font-body: "Playfair Display", serif;
+  --font-heading: "Inter", sans-serif;
+  --font-body: "Inter", sans-serif;
 }
 
 [data-theme="dark"] {
