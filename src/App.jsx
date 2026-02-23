@@ -34,6 +34,31 @@ export default function App() {
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
 
+  useEffect(() => {
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: "0px 0px -50px 0px",
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+        }
+      });
+    }, observerOptions);
+
+    const elements = document.querySelectorAll(
+      ".article-card, .section-block, .page-intro, .info-card, .settings-card"
+    );
+    elements.forEach((el) => {
+      el.classList.add("reveal-on-scroll");
+      observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <>
       <Routes>
