@@ -1,18 +1,40 @@
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { supabase } from "../lib/supabase";
 
 const AppStateContext = createContext(null);
 
-const initialHeartedIds = ["automation-backlog-triage", "content-loop-for-newsletters"];
-const initialSavedIds = ["workflow-audit-playbook", "tool-stack-scorecard"];
+const LIST_TYPES = {
+  favorite: "favorite",
+  readLater: "read_later",
+};
 
-function toSet(items) {
+function toSet(items = []) {
   return new Set(items);
 }
 
+function getMessage(error, fallback) {
+  if (error?.message) {
+    return error.message;
+  }
+  return fallback;
+}
+
+function buildRedirectPath(path = "") {
+  const basePath = import.meta.env.BASE_URL || "/";
+  const normalizedBase = basePath.endsWith("/") ? basePath : `${basePath}/`;
+  const normalizedPath = path.startsWith("/") ? path.slice(1) : path;
+  return `${window.location.origin}${normalizedBase}${normalizedPath}`;
+}
+
 export function AppStateProvider({ children }) {
-  const [heartedIds, setHeartedIds] = useState(() => toSet(initialHeartedIds));
-  const [savedIds, setSavedIds] = useState(() => toSet(initialSavedIds));
+  const [heartedIds, setHeartedIds] = useState(() => toSet());
+  const [savedIds, setSavedIds] = useState(() => toSet());
   const [lastCopiedSlug, setLastCopiedSlug] = useState("");
+  const [session, setSession] = useState(null);
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [listsLoading, setListsLoading] = useState(false);
+  const [authMessage, setAuthMessage] = useState("");
   const [theme, setTheme] = useState(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("theme");
@@ -24,10 +46,7 @@ export function AppStateProvider({ children }) {
     return "light";
   });
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  const login = () => setIsLoggedIn(true);
-  const logout = () => setIsLoggedIn(false);
+  const isLoggedIn = Boolean(user);
 
   const toggleTheme = () => {
     setTheme((prev) => {
@@ -37,29 +56,253 @@ export function AppStateProvider({ children }) {
     });
   };
 
-  const toggleHeart = (articleId) => {
+  const clearUserLists = useCallback(() => {
+    setHeartedIds(toSet());
+    setSavedIds(toSet());
+  }, []);
+
+  const loadUserLists = useCallback(async (userId) => {
+    if (!userId) {
+      clearUserLists();
+      return;
+    }
+
+    setListsLoading(true);
+    const { data, error } = await supabase
+      .from("user_article_lists")
+      .select("article_id, list_type")
+      .eq("user_id", userId);
+
+    if (error) {
+      clearUserLists();
+      setAuthMessage(
+        getMessage(error, "Could not load your saved lists. Confirm your Supabase table is set up.")
+      );
+      setListsLoading(false);
+      return;
+    }
+
+    const favoriteIds = data
+      .filter((item) => item.list_type === LIST_TYPES.favorite)
+      .map((item) => item.article_id);
+    const readLaterIds = data
+      .filter((item) => item.list_type === LIST_TYPES.readLater)
+      .map((item) => item.article_id);
+
+    setHeartedIds(toSet(favoriteIds));
+    setSavedIds(toSet(readLaterIds));
+    setListsLoading(false);
+  }, [clearUserLists]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const initializeAuth = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      if (!isMounted) {
+        return;
+      }
+
+      if (error) {
+        setAuthMessage(getMessage(error, "Could not read your auth session."));
+      }
+
+      const nextSession = data?.session ?? null;
+      const nextUser = nextSession?.user ?? null;
+      setSession(nextSession);
+      setUser(nextUser);
+
+      if (nextUser?.id) {
+        await loadUserLists(nextUser.id);
+      } else {
+        clearUserLists();
+      }
+
+      if (isMounted) {
+        setAuthLoading(false);
+      }
+    };
+
+    void initializeAuth();
+
+    const { data: authSubscription } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      setSession(nextSession);
+      const nextUser = nextSession?.user ?? null;
+      setUser(nextUser);
+
+      if (nextUser?.id) {
+        void loadUserLists(nextUser.id);
+      } else {
+        clearUserLists();
+      }
+
+      setAuthLoading(false);
+    });
+
+    return () => {
+      isMounted = false;
+      authSubscription.subscription.unsubscribe();
+    };
+  }, [clearUserLists, loadUserLists]);
+
+  const clearAuthMessage = useCallback(() => {
+    setAuthMessage("");
+  }, []);
+
+  const signUpWithEmailPassword = useCallback(async (email, password) => {
+    setAuthMessage("");
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: buildRedirectPath(),
+      },
+    });
+
+    if (error) {
+      return { error: getMessage(error, "Could not create account.") };
+    }
+
+    return { success: true, message: "Check your email to verify your account before logging in." };
+  }, []);
+
+  const signInWithEmailPassword = useCallback(async (email, password) => {
+    setAuthMessage("");
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      return { error: getMessage(error, "Could not sign in.") };
+    }
+
+    return { success: true };
+  }, []);
+
+  const sendPasswordResetEmail = useCallback(async (email) => {
+    setAuthMessage("");
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: buildRedirectPath("reset-password"),
+    });
+
+    if (error) {
+      return { error: getMessage(error, "Could not send password reset email.") };
+    }
+
+    return { success: true, message: "Password reset email sent. Check your inbox." };
+  }, []);
+
+  const updatePassword = useCallback(async (nextPassword) => {
+    setAuthMessage("");
+    const { error } = await supabase.auth.updateUser({ password: nextPassword });
+
+    if (error) {
+      return { error: getMessage(error, "Could not update password.") };
+    }
+
+    return { success: true, message: "Password updated successfully." };
+  }, []);
+
+  const signOut = useCallback(async () => {
+    setAuthMessage("");
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      return { error: getMessage(error, "Could not sign out.") };
+    }
+    return { success: true };
+  }, []);
+
+  const writeListItem = useCallback(async (articleId, listType, shouldAdd) => {
+    if (!user?.id) {
+      return { error: "Please log in first." };
+    }
+
+    if (shouldAdd) {
+      const { error } = await supabase.from("user_article_lists").upsert(
+        {
+          user_id: user.id,
+          article_id: articleId,
+          list_type: listType,
+        },
+        {
+          onConflict: "user_id,article_id,list_type",
+        }
+      );
+
+      if (error) {
+        return { error: getMessage(error, "Could not save list item.") };
+      }
+      return { success: true };
+    }
+
+    const { error } = await supabase
+      .from("user_article_lists")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("article_id", articleId)
+      .eq("list_type", listType);
+
+    if (error) {
+      return { error: getMessage(error, "Could not remove list item.") };
+    }
+
+    return { success: true };
+  }, [user]);
+
+  const toggleHeart = useCallback(async (articleId) => {
+    const wasHearted = heartedIds.has(articleId);
     setHeartedIds((prev) => {
       const next = new Set(prev);
-      if (next.has(articleId)) {
+      if (wasHearted) {
         next.delete(articleId);
       } else {
         next.add(articleId);
       }
       return next;
     });
-  };
 
-  const toggleSave = (articleId) => {
+    const result = await writeListItem(articleId, LIST_TYPES.favorite, !wasHearted);
+    if (result.error) {
+      setHeartedIds((prev) => {
+        const reverted = new Set(prev);
+        if (wasHearted) {
+          reverted.add(articleId);
+        } else {
+          reverted.delete(articleId);
+        }
+        return reverted;
+      });
+      setAuthMessage(result.error);
+    }
+  }, [heartedIds, writeListItem]);
+
+  const toggleSave = useCallback(async (articleId) => {
+    const wasSaved = savedIds.has(articleId);
     setSavedIds((prev) => {
       const next = new Set(prev);
-      if (next.has(articleId)) {
+      if (wasSaved) {
         next.delete(articleId);
       } else {
         next.add(articleId);
       }
       return next;
     });
-  };
+
+    const result = await writeListItem(articleId, LIST_TYPES.readLater, !wasSaved);
+    if (result.error) {
+      setSavedIds((prev) => {
+        const reverted = new Set(prev);
+        if (wasSaved) {
+          reverted.add(articleId);
+        } else {
+          reverted.delete(articleId);
+        }
+        return reverted;
+      });
+      setAuthMessage(result.error);
+    }
+  }, [savedIds, writeListItem]);
 
   const copyArticleLink = async (slug) => {
     const basePath = import.meta.env.BASE_URL || "/";
@@ -84,15 +327,43 @@ export function AppStateProvider({ children }) {
       savedIds,
       lastCopiedSlug,
       theme,
+      session,
+      user,
+      authLoading,
+      listsLoading,
       isLoggedIn,
-      login,
-      logout,
+      authMessage,
+      clearAuthMessage,
+      signUpWithEmailPassword,
+      signInWithEmailPassword,
+      sendPasswordResetEmail,
+      updatePassword,
+      signOut,
       toggleHeart,
       toggleSave,
       copyArticleLink,
       toggleTheme,
     }),
-    [heartedIds, lastCopiedSlug, savedIds, theme, isLoggedIn],
+    [
+      heartedIds,
+      savedIds,
+      lastCopiedSlug,
+      theme,
+      session,
+      user,
+      authLoading,
+      listsLoading,
+      isLoggedIn,
+      authMessage,
+      clearAuthMessage,
+      signUpWithEmailPassword,
+      signInWithEmailPassword,
+      sendPasswordResetEmail,
+      updatePassword,
+      signOut,
+      toggleHeart,
+      toggleSave,
+    ]
   );
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;

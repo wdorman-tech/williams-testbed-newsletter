@@ -7,6 +7,7 @@ import FavoritesPage from "./pages/FavoritesPage";
 import HomePage from "./pages/HomePage";
 import InfoPage from "./pages/InfoPage";
 import ReadingListPage from "./pages/ReadingListPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import SettingsPage from "./pages/SettingsPage";
 import WorkWithMePage from "./pages/WorkWithMePage";
 import SignupPage from "./pages/SignupPage";
@@ -17,8 +18,12 @@ function Page({ children }) {
 }
 
 function RequireAuth({ children }) {
-  const { isLoggedIn } = useAppState();
+  const { isLoggedIn, authLoading } = useAppState();
   const location = useLocation();
+
+  if (authLoading) {
+    return <div className="page-content">Loading account...</div>;
+  }
 
   if (!isLoggedIn) {
     return <Navigate to="/signup" state={{ from: location }} replace />;
@@ -63,6 +68,7 @@ export default function App() {
     <>
       <Routes>
         <Route path="/signup" element={<SignupPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         
         <Route
           path="/"

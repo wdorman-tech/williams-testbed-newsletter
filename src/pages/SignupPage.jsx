@@ -6,8 +6,14 @@ const SIGNUP_TITLE = "sign up for free to\nstay ahead of the curve";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [mode, setMode] = useState("login");
   const [typedTitle, setTypedTitle] = useState("");
-  const { login, isLoggedIn } = useAppState();
+  const [statusMessage, setStatusMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { signUpWithEmailPassword, signInWithEmailPassword, sendPasswordResetEmail, isLoggedIn } =
+    useAppState();
 
   useEffect(() => {
     let index = 0;
@@ -26,10 +32,31 @@ export default function SignupPage() {
     return <Navigate to="/" replace />;
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Simulate login
-    login();
+    setErrorMessage("");
+    setStatusMessage("");
+    setIsSubmitting(true);
+
+    let result;
+    if (mode === "signup") {
+      result = await signUpWithEmailPassword(email, password);
+    } else if (mode === "forgot") {
+      result = await sendPasswordResetEmail(email);
+    } else {
+      result = await signInWithEmailPassword(email, password);
+    }
+
+    if (result?.error) {
+      setErrorMessage(result.error);
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (result?.message) {
+      setStatusMessage(result.message);
+    }
+    setIsSubmitting(false);
   };
 
   return (
@@ -51,14 +78,40 @@ export default function SignupPage() {
               className="signup-input"
               required
             />
+            {mode !== "forgot" && (
+              <input
+                type="password"
+                placeholder="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="signup-input"
+                minLength={8}
+                required
+              />
+            )}
             <button type="submit" className="signup-button">
-              Sign Up
+              {isSubmitting
+                ? "Please wait..."
+                : mode === "signup"
+                  ? "Create Account"
+                  : mode === "forgot"
+                    ? "Send Reset Email"
+                    : "Login"}
             </button>
+            {errorMessage && <p className="auth-error">{errorMessage}</p>}
+            {statusMessage && <p className="auth-success">{statusMessage}</p>}
           </div>
         </form>
-        <div className="login-link-container">
-          <button onClick={login} className="login-link">
+
+        <div className="login-link-container auth-link-row">
+          <button type="button" onClick={() => setMode("login")} className="login-link">
             login
+          </button>
+          <button type="button" onClick={() => setMode("signup")} className="login-link">
+            create account
+          </button>
+          <button type="button" onClick={() => setMode("forgot")} className="login-link">
+            forgot password
           </button>
         </div>
       </div>

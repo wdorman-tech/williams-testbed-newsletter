@@ -3,7 +3,7 @@ import { articles } from "../data/articles";
 import { useAppState } from "../state/AppStateContext";
 
 export default function ReadingListPage() {
-  const { savedIds } = useAppState();
+  const { savedIds, listsLoading } = useAppState();
   const readingList = articles.filter((article) => savedIds.has(article.id));
 
   return (
@@ -12,7 +12,9 @@ export default function ReadingListPage() {
         <p className="eyebrow">Reading List</p>
         <h1>Saved for Later</h1>
       </div>
-      {readingList.length ? (
+      {listsLoading ? (
+        <p className="empty-state">Loading reading list...</p>
+      ) : readingList.length ? (
         <div className="article-grid">
           {readingList.map((article) => (
             <ArticleCard key={article.id} article={article} />

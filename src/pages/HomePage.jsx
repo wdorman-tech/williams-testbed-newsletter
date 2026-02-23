@@ -8,7 +8,7 @@ function sortByDateDesc(list) {
 }
 
 export default function HomePage() {
-  const { savedIds } = useAppState();
+  const { savedIds, listsLoading } = useAppState();
 
   const recentArticles = sortByDateDesc(articles).slice(0, 4);
   const trendingArticles = sortByDateDesc(articles.filter((article) => article.trending)).slice(0, 3);
@@ -57,7 +57,9 @@ export default function HomePage() {
           credential most AI newsletter writers can&apos;t claim.
         </p>
         <h2>Saved for Later</h2>
-        {savedArticles.length ? (
+        {listsLoading ? (
+          <p className="empty-state">Loading saved articles...</p>
+        ) : savedArticles.length ? (
           <ul className="saved-list">
             {savedArticles.map((article) => (
               <li key={article.id}>

@@ -3,7 +3,7 @@ import { articles } from "../data/articles";
 import { useAppState } from "../state/AppStateContext";
 
 export default function FavoritesPage() {
-  const { heartedIds } = useAppState();
+  const { heartedIds, listsLoading } = useAppState();
   const favoriteArticles = articles.filter((article) => heartedIds.has(article.id));
 
   return (
@@ -12,7 +12,9 @@ export default function FavoritesPage() {
         <p className="eyebrow">Favorites</p>
         <h1>Articles You Hearted</h1>
       </div>
-      {favoriteArticles.length ? (
+      {listsLoading ? (
+        <p className="empty-state">Loading favorites...</p>
+      ) : favoriteArticles.length ? (
         <div className="article-grid">
           {favoriteArticles.map((article) => (
             <ArticleCard key={article.id} article={article} />
