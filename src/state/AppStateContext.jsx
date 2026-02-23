@@ -13,6 +13,24 @@ export function AppStateProvider({ children }) {
   const [heartedIds, setHeartedIds] = useState(() => toSet(initialHeartedIds));
   const [savedIds, setSavedIds] = useState(() => toSet(initialSavedIds));
   const [lastCopiedSlug, setLastCopiedSlug] = useState("");
+  const [theme, setTheme] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("theme");
+      if (saved) {
+        return saved;
+      }
+      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    }
+    return "light";
+  });
+
+  const toggleTheme = () => {
+    setTheme((prev) => {
+      const next = prev === "light" ? "dark" : "light";
+      localStorage.setItem("theme", next);
+      return next;
+    });
+  };
 
   const toggleHeart = (articleId) => {
     setHeartedIds((prev) => {
@@ -58,11 +76,13 @@ export function AppStateProvider({ children }) {
       heartedIds,
       savedIds,
       lastCopiedSlug,
+      theme,
       toggleHeart,
       toggleSave,
       copyArticleLink,
+      toggleTheme,
     }),
-    [heartedIds, lastCopiedSlug, savedIds],
+    [heartedIds, lastCopiedSlug, savedIds, theme],
   );
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;

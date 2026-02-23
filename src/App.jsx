@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
 import ArticlePage from "./pages/ArticlePage";
@@ -7,17 +8,21 @@ import HomePage from "./pages/HomePage";
 import InfoPage from "./pages/InfoPage";
 import ReadingListPage from "./pages/ReadingListPage";
 import SettingsPage from "./pages/SettingsPage";
-import CustomCursor from "./components/CustomCursor";
+import { useAppState } from "./state/AppStateContext";
 
 function Page({ children }) {
   return <Layout>{children}</Layout>;
 }
 
 export default function App() {
+  const { theme } = useAppState();
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
+
   return (
-    <>
-      <CustomCursor />
-      <Routes>
+    <Routes>
       <Route
         path="/"
         element={
@@ -116,6 +121,5 @@ export default function App() {
       />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
-    </>
   );
 }
