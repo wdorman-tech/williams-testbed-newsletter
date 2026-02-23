@@ -1,4 +1,5 @@
 import ArticleCard from "../components/ArticleCard";
+import Reveal from "../components/Reveal";
 import { articles } from "../data/articles";
 import { useAppState } from "../state/AppStateContext";
 
@@ -8,10 +9,12 @@ export default function ReadingListPage() {
 
   return (
     <section className="page-stack">
-      <div className="page-intro">
-        <p className="eyebrow">Reading List</p>
-        <h1>Saved for Later</h1>
-      </div>
+      <Reveal>
+        <div className="page-intro">
+          <p className="eyebrow">Reading List</p>
+          <h1>Saved for Later</h1>
+        </div>
+      </Reveal>
       {readingList.length ? (
         <div className="article-grid">
           {readingList.map((article) => (
@@ -19,7 +22,9 @@ export default function ReadingListPage() {
           ))}
         </div>
       ) : (
-        <p className="empty-state">Your reading list is empty.</p>
+        <Reveal delay={200}>
+          <p className="empty-state">Your reading list is empty.</p>
+        </Reveal>
       )}
     </section>
   );

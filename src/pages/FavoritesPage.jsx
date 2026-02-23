@@ -1,4 +1,5 @@
 import ArticleCard from "../components/ArticleCard";
+import Reveal from "../components/Reveal";
 import { articles } from "../data/articles";
 import { useAppState } from "../state/AppStateContext";
 
@@ -8,10 +9,12 @@ export default function FavoritesPage() {
 
   return (
     <section className="page-stack">
-      <div className="page-intro">
-        <p className="eyebrow">Favorites</p>
-        <h1>Articles You Hearted</h1>
-      </div>
+      <Reveal>
+        <div className="page-intro">
+          <p className="eyebrow">Favorites</p>
+          <h1>Articles You Hearted</h1>
+        </div>
+      </Reveal>
       {favoriteArticles.length ? (
         <div className="article-grid">
           {favoriteArticles.map((article) => (
@@ -19,7 +22,9 @@ export default function FavoritesPage() {
           ))}
         </div>
       ) : (
-        <p className="empty-state">You have not hearted any articles yet.</p>
+        <Reveal delay={200}>
+          <p className="empty-state">You have not hearted any articles yet.</p>
+        </Reveal>
       )}
     </section>
   );

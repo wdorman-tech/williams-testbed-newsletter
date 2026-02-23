@@ -7,6 +7,7 @@ import HomePage from "./pages/HomePage";
 import InfoPage from "./pages/InfoPage";
 import ReadingListPage from "./pages/ReadingListPage";
 import SettingsPage from "./pages/SettingsPage";
+import CustomCursor from "./components/CustomCursor";
 
 function Page({ children }) {
   return <Layout>{children}</Layout>;
@@ -14,7 +15,9 @@ function Page({ children }) {
 
 export default function App() {
   return (
-    <Routes>
+    <>
+      <CustomCursor />
+      <Routes>
       <Route
         path="/"
         element={
@@ -113,5 +116,6 @@ export default function App() {
       />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </>
   );
 }
