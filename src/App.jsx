@@ -1,47 +1,117 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import AppLayout from "./components/AppLayout";
-import { AdminRoute, ProtectedRoute } from "./components/ProtectedRoute";
-import LandingPage from "./pages/LandingPage";
-import LoginPage from "./pages/LoginPage";
-import DashboardPage from "./pages/DashboardPage";
-import NewsletterPage from "./pages/NewsletterPage";
-import AdminPage from "./pages/AdminPage";
+import Layout from "./components/Layout";
+import ArticlePage from "./pages/ArticlePage";
+import CategoryPage from "./pages/CategoryPage";
+import FavoritesPage from "./pages/FavoritesPage";
+import HomePage from "./pages/HomePage";
+import InfoPage from "./pages/InfoPage";
+import ReadingListPage from "./pages/ReadingListPage";
+import SettingsPage from "./pages/SettingsPage";
+
+function Page({ children }) {
+  return <Layout>{children}</Layout>;
+}
 
 export default function App() {
   return (
-    <AppLayout>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <DashboardPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="/archive" element={<Navigate to="/dashboard?tab=all" replace />} />
-        <Route
-          path="/archive/:slug"
-          element={
-            <ProtectedRoute>
-              <NewsletterPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="/my-tool-recommendations" element={<Navigate to="/dashboard?tab=all" replace />} />
-        <Route path="/settings" element={<Navigate to="/dashboard?tab=all" replace />} />
-        <Route
-          path="/admin"
-          element={
-            <AdminRoute>
-              <AdminPage />
-            </AdminRoute>
-          }
-        />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </AppLayout>
+    <Routes>
+      <Route
+        path="/"
+        element={
+          <Page>
+            <HomePage />
+          </Page>
+        }
+      />
+      <Route
+        path="/favorites"
+        element={
+          <Page>
+            <FavoritesPage />
+          </Page>
+        }
+      />
+      <Route
+        path="/automation"
+        element={
+          <Page>
+            <CategoryPage
+              categoryKey="automation"
+              title="Automation"
+              description="Articles focused on automation strategy, rollouts, and maintenance."
+            />
+          </Page>
+        }
+      />
+      <Route
+        path="/marketing"
+        element={
+          <Page>
+            <CategoryPage
+              categoryKey="marketing"
+              title="Marketing"
+              description="Articles focused on positioning, content systems, and campaign execution."
+            />
+          </Page>
+        }
+      />
+      <Route
+        path="/my-workflow"
+        element={
+          <Page>
+            <CategoryPage
+              categoryKey="my-workflow"
+              title="My Workflow"
+              description="Articles describing personal operating systems and team rhythms."
+            />
+          </Page>
+        }
+      />
+      <Route
+        path="/my-tools"
+        element={
+          <Page>
+            <CategoryPage
+              categoryKey="my-tools"
+              title="My Tools"
+              description="Articles on evaluating and selecting tools for scalable operations."
+            />
+          </Page>
+        }
+      />
+      <Route
+        path="/reading-list"
+        element={
+          <Page>
+            <ReadingListPage />
+          </Page>
+        }
+      />
+      <Route
+        path="/info"
+        element={
+          <Page>
+            <InfoPage />
+          </Page>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <Page>
+            <SettingsPage />
+          </Page>
+        }
+      />
+      <Route
+        path="/article/:slug"
+        element={
+          <Page>
+            <ArticlePage />
+          </Page>
+        }
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }

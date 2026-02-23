@@ -1,0 +1,26 @@
+import ArticleCard from "../components/ArticleCard";
+import { articles } from "../data/articles";
+import { useAppState } from "../state/AppStateContext";
+
+export default function ReadingListPage() {
+  const { savedIds } = useAppState();
+  const readingList = articles.filter((article) => savedIds.has(article.id));
+
+  return (
+    <section className="page-stack">
+      <div className="page-intro">
+        <p className="eyebrow">Reading List</p>
+        <h1>Saved for Later</h1>
+      </div>
+      {readingList.length ? (
+        <div className="article-grid">
+          {readingList.map((article) => (
+            <ArticleCard key={article.id} article={article} />
+          ))}
+        </div>
+      ) : (
+        <p className="empty-state">Your reading list is empty.</p>
+      )}
+    </section>
+  );
+}
