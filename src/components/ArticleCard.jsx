@@ -24,7 +24,9 @@ export default function ArticleCard({ article }) {
         {article.trending ? <span className="trending-label">Trending</span> : null}
       </div>
       <h2 className="article-title">
-        <Link to={`/article/${article.slug}`}>{article.title}</Link>
+        <Link to={`/article/${article.slug}`} title={`Read more about ${article.title}`}>
+          {article.title}
+        </Link>
       </h2>
       <p className="article-excerpt">{article.excerpt}</p>
       <ArticleActions article={article} />

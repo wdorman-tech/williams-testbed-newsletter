@@ -43,8 +43,8 @@ body {
   overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
-/* Grain Overlay */
-body::before {
+/* Grain Overlay Removed */
+/* body::before {
   content: "";
   position: fixed;
   top: 0;
@@ -55,7 +55,7 @@ body::before {
   pointer-events: none;
   z-index: 9998;
   opacity: 0.4;
-}
+} */
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
@@ -252,8 +252,8 @@ a:hover {
 }
 
 .brand-mark {
-  width: 48px;
-  height: 48px;
+  width: 64px;
+  height: 64px;
   object-fit: contain;
 }
 
@@ -689,8 +689,8 @@ a:hover {
   }
 
   .brand-mark {
-    width: 36px;
-    height: 36px;
+    width: 48px;
+    height: 48px;
   }
   
   .header-actions {

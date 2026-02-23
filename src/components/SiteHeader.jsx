@@ -16,11 +16,13 @@ const navItems = [
 export default function SiteHeader() {
   return (
     <header className="site-header">
-      <Link to="/" className="brand-name">
+      <Link to="/" className="brand-name" title="William's Testbed Home">
         <img
           src={brandMark}
-          alt="William's Testbed"
+          alt="William's Testbed Logo"
           className="brand-mark"
+          width="64"
+          height="64"
         />
         William&apos;s Testbed
       </Link>
