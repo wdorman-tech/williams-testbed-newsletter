@@ -11,7 +11,6 @@ import SettingsPage from "./pages/SettingsPage";
 import WorkWithMePage from "./pages/WorkWithMePage";
 import SignupPage from "./pages/SignupPage";
 import { useAppState } from "./state/AppStateContext";
-import CursorFollower from "./components/CursorFollower";
 
 function Page({ children }) {
   return <Layout>{children}</Layout>;
@@ -37,7 +36,6 @@ export default function App() {
 
   return (
     <>
-      <CursorFollower />
       <Routes>
         <Route path="/signup" element={<SignupPage />} />
         

@@ -1,10 +1,26 @@
-import React, { useState } from "react";
-import { Link, Navigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Navigate } from "react-router-dom";
 import { useAppState } from "../state/AppStateContext";
+
+const SIGNUP_TITLE = "sign up for free to\nstay ahead of the curve";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
+  const [typedTitle, setTypedTitle] = useState("");
   const { login, isLoggedIn } = useAppState();
+
+  useEffect(() => {
+    let index = 0;
+    const timer = setInterval(() => {
+      index += 1;
+      setTypedTitle(SIGNUP_TITLE.slice(0, index));
+      if (index >= SIGNUP_TITLE.length) {
+        clearInterval(timer);
+      }
+    }, 45);
+
+    return () => clearInterval(timer);
+  }, []);
 
   if (isLoggedIn) {
     return <Navigate to="/" replace />;
@@ -19,8 +35,11 @@ export default function SignupPage() {
   return (
     <div className="signup-container">
       <div className="signup-content">
-        <h1 className="signup-title">
-          sign up for free to stay ahead of the curve
+        <h1 className="signup-title signup-title--typewriter">
+          {typedTitle}
+          <span className="signup-caret" aria-hidden="true">
+            |
+          </span>
         </h1>
         <form onSubmit={handleSubmit} className="signup-form">
           <div className="input-wrapper">
