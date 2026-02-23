@@ -4,10 +4,7 @@ import { AdminRoute, ProtectedRoute } from "./components/ProtectedRoute";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
-import ArchivePage from "./pages/ArchivePage";
 import NewsletterPage from "./pages/NewsletterPage";
-import ToolRecommendationsPage from "./pages/ToolRecommendationsPage";
-import SettingsPage from "./pages/SettingsPage";
 import AdminPage from "./pages/AdminPage";
 
 export default function App() {
@@ -24,14 +21,7 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/archive"
-          element={
-            <ProtectedRoute>
-              <ArchivePage />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/archive" element={<Navigate to="/dashboard?tab=editions" replace />} />
         <Route
           path="/archive/:slug"
           element={
@@ -40,22 +30,8 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/my-tool-recommendations"
-          element={
-            <ProtectedRoute>
-              <ToolRecommendationsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/settings"
-          element={
-            <ProtectedRoute>
-              <SettingsPage />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/my-tool-recommendations" element={<Navigate to="/dashboard?tab=tools" replace />} />
+        <Route path="/settings" element={<Navigate to="/dashboard?tab=editions" replace />} />
         <Route
           path="/admin"
           element={
