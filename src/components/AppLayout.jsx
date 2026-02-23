@@ -12,7 +12,6 @@ export default function AppLayout({ children }) {
   const [isPublishOpen, setIsPublishOpen] = useState(false);
   const isAdmin = profile?.role === "admin";
   const isDashboardRoute = user && location.pathname === "/dashboard";
-  const activeTab = new URLSearchParams(location.search).get("tab") === "tools" ? "tools" : "editions";
 
   const handleSignOut = async () => {
     try {
@@ -29,20 +28,13 @@ export default function AppLayout({ children }) {
       <TopBanner />
       {isDashboardRoute ? (
         <div className="dashboard-shell">
-          <aside className="sidebar">
-            <div className="sidebar-top">
+          <header className="dashboard-news-header">
+            <div className="dashboard-news-header-left">
               <p className="sidebar-brand">William's Testbed</p>
-              <nav className="sidebar-nav">
-                <Link className={`sidebar-link${activeTab === "editions" ? " active" : ""}`} to="/dashboard?tab=editions">
-                  Editions
-                </Link>
-                <Link className={`sidebar-link${activeTab === "tools" ? " active" : ""}`} to="/dashboard?tab=tools">
-                  Tool Picks
-                </Link>
-              </nav>
-              <SettingsPanel />
+              <p className="meta-caption">Daily newsletter desk</p>
             </div>
-            <div className="sidebar-bottom">
+            <div className="dashboard-news-header-actions">
+              <SettingsPanel />
               {isAdmin && (
                 <button type="button" className="button button-primary sidebar-publish" onClick={() => setIsPublishOpen(true)}>
                   Publish New Edition
@@ -58,14 +50,14 @@ export default function AppLayout({ children }) {
                 </button>
               </div>
             </div>
-          </aside>
-          <main className="dashboard-main">{children}</main>
+          </header>
+          <main className="dashboard-main dashboard-main-news">{children}</main>
           <PublishEditionModal
             isOpen={isPublishOpen}
             onClose={() => setIsPublishOpen(false)}
             onPublished={() => {
               setIsPublishOpen(false);
-              navigate("/dashboard?tab=editions", { replace: true });
+              navigate("/dashboard?tab=all", { replace: true });
             }}
           />
         </div>

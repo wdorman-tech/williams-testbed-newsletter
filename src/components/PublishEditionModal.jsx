@@ -5,7 +5,7 @@ const initialForm = {
   title: "",
   excerpt: "",
   body: "",
-  tags: "",
+  categories: "",
   toolPicks: "",
 };
 
@@ -24,16 +24,16 @@ export default function PublishEditionModal({ isOpen, onClose, onPublished }) {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  const tagsAsText = useMemo(() => {
-    if (!form.tags.trim()) {
+  const categoriesAsText = useMemo(() => {
+    if (!form.categories.trim()) {
       return "";
     }
-    return form.tags
+    return form.categories
       .split(",")
-      .map((tag) => tag.trim())
+      .map((value) => value.trim())
       .filter(Boolean)
       .join(", ");
-  }, [form.tags]);
+  }, [form.categories]);
 
   if (!isOpen) {
     return null;
@@ -62,7 +62,7 @@ export default function PublishEditionModal({ isOpen, onClose, onPublished }) {
       return;
     }
 
-    const summaryParts = [form.excerpt.trim(), tagsAsText ? `Tags: ${tagsAsText}` : ""].filter(Boolean);
+    const summaryParts = [form.excerpt.trim(), categoriesAsText ? `Categories: ${categoriesAsText}` : ""].filter(Boolean);
     const summary = summaryParts.join("  ");
 
     try {
@@ -151,11 +151,11 @@ export default function PublishEditionModal({ isOpen, onClose, onPublished }) {
             />
           </label>
           <label>
-            <span className="meta-label">Tags (comma-separated)</span>
+            <span className="meta-label">Categories (comma-separated)</span>
             <input
               type="text"
-              value={form.tags}
-              onChange={(event) => setForm({ ...form, tags: event.target.value })}
+              value={form.categories}
+              onChange={(event) => setForm({ ...form, categories: event.target.value })}
             />
           </label>
           <label>

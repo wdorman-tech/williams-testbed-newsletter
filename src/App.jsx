@@ -21,7 +21,7 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="/archive" element={<Navigate to="/dashboard?tab=editions" replace />} />
+        <Route path="/archive" element={<Navigate to="/dashboard?tab=all" replace />} />
         <Route
           path="/archive/:slug"
           element={
@@ -30,8 +30,8 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="/my-tool-recommendations" element={<Navigate to="/dashboard?tab=tools" replace />} />
-        <Route path="/settings" element={<Navigate to="/dashboard?tab=editions" replace />} />
+        <Route path="/my-tool-recommendations" element={<Navigate to="/dashboard?tab=all" replace />} />
+        <Route path="/settings" element={<Navigate to="/dashboard?tab=all" replace />} />
         <Route
           path="/admin"
           element={
