@@ -8,6 +8,7 @@ import HomePage from "./pages/HomePage";
 import InfoPage from "./pages/InfoPage";
 import ReadingListPage from "./pages/ReadingListPage";
 import SettingsPage from "./pages/SettingsPage";
+import WorkWithMePage from "./pages/WorkWithMePage";
 import { useAppState } from "./state/AppStateContext";
 
 function Page({ children }) {
@@ -108,6 +109,14 @@ export default function App() {
         element={
           <Page>
             <SettingsPage />
+          </Page>
+        }
+      />
+      <Route
+        path="/work-with-me"
+        element={
+          <Page>
+            <WorkWithMePage />
           </Page>
         }
       />

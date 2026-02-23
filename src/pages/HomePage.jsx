@@ -18,10 +18,11 @@ export default function HomePage() {
     <div className="home-layout">
       <section className="main-column">
         <div className="page-intro">
-          <p className="eyebrow">Black Lily Journal</p>
-          <h1>Recent & Trending Articles</h1>
+          <p className="eyebrow">William&apos;s Testbed</p>
+          <h1>What I&apos;m Building This Week</h1>
           <p>
-            Practical notes on workflows, automation, marketing, and tool systems.
+            A weekly notebook on live AI systems, experiments, and practical implementation
+            lessons.
           </p>
         </div>
 
@@ -45,6 +46,16 @@ export default function HomePage() {
       </section>
 
       <aside className="right-rail">
+        <h2>Credentials</h2>
+        <p className="credentials-copy">
+          William has built production AI systems across high-stakes industries: an ML model for
+          intraoperative pedicle screw placement at a 10M+ biomedical startup, a RAG-based
+          research curation agent for a 10B+ AUM investment firm, and a quantitative trading
+          framework integrating AI-driven qualitative scoring that achieved 17% outperformance over
+          the S&amp;P 500 at a beta of 0.56. He doesn&apos;t write about AI from the sidelines - he
+          has shipped real systems for real clients with real money on the line. That&apos;s the
+          credential most AI newsletter writers can&apos;t claim.
+        </p>
         <h2>Saved for Later</h2>
         {savedArticles.length ? (
           <ul className="saved-list">

@@ -1,5 +1,4 @@
-import { NavLink } from "react-router-dom";
-import { useAppState } from "../state/AppStateContext";
+import { Link, NavLink } from "react-router-dom";
 
 const navItems = [
   { to: "/", label: "Home", end: true },
@@ -14,10 +13,16 @@ const navItems = [
 ];
 
 export default function SiteHeader() {
-  const { theme, toggleTheme } = useAppState();
-
   return (
     <header className="site-header">
+      <Link to="/" className="brand-name">
+        <img
+          src="/photos/blacklily_transparent.png"
+          alt="William's Testbed"
+          className="brand-mark"
+        />
+        William&apos;s Testbed
+      </Link>
       <nav className="site-nav" aria-label="Primary">
         {navItems.map((item) => (
           <NavLink
@@ -31,22 +36,9 @@ export default function SiteHeader() {
         ))}
       </nav>
       <div className="header-actions">
-        <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle Theme">
-          {theme === "light" ? "Dark Mode" : "Light Mode"}
-        </button>
-        <a
-          href="https://blacklilyaccelerator.com"
-          target="_blank"
-          rel="noreferrer"
-          className="logo-link"
-          aria-label="Visit Black Lily Accelerator"
-        >
-          <img
-            src="/photos/blacklily_transparent.png"
-            alt="Black Lily Accelerator"
-            className="logo-image"
-          />
-        </a>
+        <Link to="/work-with-me" className="work-with-me-button">
+          Work with Me
+        </Link>
       </div>
     </header>
   );
