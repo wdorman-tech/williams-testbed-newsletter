@@ -1,10 +1,21 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import TopBanner from "./TopBanner";
 import { useAuth } from "../state/AuthContext";
 
 export default function AppLayout({ children }) {
+  const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
   const isAdmin = profile?.role === "admin";
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      navigate("/login", { replace: true });
+    } catch (error) {
+      // Keep this visible for debugging if Supabase rejects sign-out.
+      console.error(error);
+    }
+  };
 
   return (
     <div className="app-shell">
@@ -19,7 +30,7 @@ export default function AppLayout({ children }) {
         {!user ? (
           <Link to="/login">Login</Link>
         ) : (
-          <button type="button" className="link-like" onClick={signOut}>
+          <button type="button" className="link-like" onClick={handleSignOut}>
             Logout
           </button>
         )}

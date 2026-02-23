@@ -56,6 +56,17 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
+  const signOut = async () => {
+    const { error } = await supabase.auth.signOut({ scope: "local" });
+    if (error) {
+      throw error;
+    }
+
+    setSession(null);
+    setUser(null);
+    setProfile(null);
+  };
+
   const value = useMemo(
     () => ({
       session,
@@ -63,9 +74,9 @@ export function AuthProvider({ children }) {
       profile,
       isLoading,
       refreshProfile: () => loadProfile(user),
-      signOut: () => supabase.auth.signOut(),
+      signOut,
     }),
-    [session, user, profile, isLoading]
+    [session, user, profile, isLoading, signOut]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
