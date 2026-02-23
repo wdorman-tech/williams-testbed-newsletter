@@ -31,8 +31,9 @@ export default function ArchivePage() {
   }
 
   return (
-    <section className="card">
-      <h2>Past Editions</h2>
+    <section className="card reveal">
+      <h2 className="section-title">Past Editions</h2>
+      <p className="section-subtle">Published member editions from previous weeks.</p>
       {error && <p className="message">{error}</p>}
       {!items.length && !error && <p>No newsletters have been published yet.</p>}
       <ul className="list">

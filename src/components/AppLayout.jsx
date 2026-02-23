@@ -24,7 +24,7 @@ export default function AppLayout({ children }) {
           </button>
         )}
       </nav>
-      <main className="main-content">{children}</main>
+      <main className="main-content page-surface">{children}</main>
     </div>
   );
 }

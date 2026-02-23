@@ -22,7 +22,7 @@ export default function ToolRecommendationsPage() {
   }, []);
 
   return (
-    <section className="card">
+    <section className="card reveal">
       <h2>My Tool Recommendations</h2>
       {error && <p className="message">{error}</p>}
       {!item && !error && <p>No recommendations published this week yet.</p>}

@@ -48,7 +48,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <section className="card narrow">
+    <section className="card narrow reveal">
       <h2>Settings</h2>
       <form className="form-grid" onSubmit={save}>
         <label>

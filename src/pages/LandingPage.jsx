@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 export default function LandingPage() {
   return (
-    <section className="card">
+    <section className="card hero-card reveal">
       <p className="eyebrow">MEMBERS ONLY</p>
       <h1>What's running on my testbed this week.</h1>
       <p>

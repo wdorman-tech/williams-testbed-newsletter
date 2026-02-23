@@ -44,7 +44,7 @@ export default function LoginPage() {
   };
 
   return (
-    <section className="card narrow">
+    <section className="card narrow reveal">
       <h2>{mode === "login" ? "Login" : "Create account"}</h2>
       <form onSubmit={handleSubmit} className="form-grid">
         <input

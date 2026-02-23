@@ -54,7 +54,7 @@ export default function NewsletterPage() {
   }
 
   return (
-    <article className="card">
+    <article className="card reveal">
       <h2>{item.title}</h2>
       <p className="muted">{item.summary}</p>
       <button type="button" className="button" onClick={copyLink}>

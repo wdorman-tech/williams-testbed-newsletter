@@ -146,7 +146,7 @@ export default function AdminPage() {
 
   return (
     <section className="admin-grid">
-      <article className="card">
+      <article className="card reveal">
         <h2>Add or Edit Newsletter</h2>
         <form className="form-grid" onSubmit={saveNewsletter}>
           <input
@@ -199,7 +199,7 @@ export default function AdminPage() {
         </ul>
       </article>
 
-      <article className="card">
+      <article className="card reveal delay-1">
         <h2>Edit My Tool Recommendations</h2>
         <form className="form-grid" onSubmit={saveTools}>
           <input
@@ -227,7 +227,7 @@ export default function AdminPage() {
         </form>
       </article>
 
-      <article className="card">
+      <article className="card reveal delay-1">
         <h2>Send Newsletter (Resend)</h2>
         <form className="form-grid" onSubmit={sendNewsletter}>
           <select value={sendTargetId} onChange={(event) => setSendTargetId(event.target.value)} required>
@@ -250,7 +250,7 @@ export default function AdminPage() {
         </form>
       </article>
 
-      <article className="card">
+      <article className="card reveal delay-2">
         <h2>Admin Analytics (Placeholders)</h2>
         <ul className="list">
           <li>Most-clicked articles: {analytics.topArticles}</li>
