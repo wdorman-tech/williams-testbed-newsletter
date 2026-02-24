@@ -8,17 +8,17 @@ create table if not exists public.user_article_lists (
 
 alter table public.user_article_lists enable row level security;
 
-create policy if not exists "Users can read their own article lists"
+create policy "Users can read their own article lists"
   on public.user_article_lists
   for select
   using (auth.uid() = user_id);
 
-create policy if not exists "Users can insert their own article lists"
+create policy "Users can insert their own article lists"
   on public.user_article_lists
   for insert
   with check (auth.uid() = user_id);
 
-create policy if not exists "Users can delete their own article lists"
+create policy "Users can delete their own article lists"
   on public.user_article_lists
   for delete
   using (auth.uid() = user_id);
