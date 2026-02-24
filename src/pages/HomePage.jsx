@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import ArticleCard from "../components/ArticleCard";
-import { articles } from "../data/articles";
+import { useArticles } from "../hooks/useArticles";
 import { useAppState } from "../state/AppStateContext";
 
 function sortByDateDesc(list) {
@@ -9,10 +9,13 @@ function sortByDateDesc(list) {
 
 export default function HomePage() {
   const { savedIds, listsLoading } = useAppState();
+  const { publishedArticles } = useArticles();
 
-  const recentArticles = sortByDateDesc(articles).slice(0, 4);
-  const trendingArticles = sortByDateDesc(articles.filter((article) => article.trending)).slice(0, 3);
-  const savedArticles = sortByDateDesc(articles.filter((article) => savedIds.has(article.id)));
+  const recentArticles = sortByDateDesc(publishedArticles).slice(0, 4);
+  const trendingArticles = sortByDateDesc(
+    publishedArticles.filter((article) => article.trending)
+  ).slice(0, 3);
+  const savedArticles = sortByDateDesc(publishedArticles.filter((article) => savedIds.has(article.id)));
 
   return (
     <div className="home-layout">
@@ -28,20 +31,28 @@ export default function HomePage() {
 
         <section className="section-block">
           <h2 className="section-title">Recent</h2>
-          <div className="article-grid">
-            {recentArticles.map((article) => (
-              <ArticleCard key={article.id} article={article} />
-            ))}
-          </div>
+          {recentArticles.length > 0 ? (
+            <div className="article-grid">
+              {recentArticles.map((article) => (
+                <ArticleCard key={article.id} article={article} />
+              ))}
+            </div>
+          ) : (
+            <p className="empty-state">No articles published yet.</p>
+          )}
         </section>
 
         <section className="section-block">
           <h2 className="section-title">Trending</h2>
-          <div className="article-grid">
-            {trendingArticles.map((article) => (
-              <ArticleCard key={article.id} article={article} />
-            ))}
-          </div>
+          {trendingArticles.length > 0 ? (
+            <div className="article-grid">
+              {trendingArticles.map((article) => (
+                <ArticleCard key={article.id} article={article} />
+              ))}
+            </div>
+          ) : (
+            <p className="empty-state">No trending articles yet.</p>
+          )}
         </section>
       </section>
 

@@ -1,10 +1,11 @@
 import ArticleCard from "../components/ArticleCard";
-import { articles } from "../data/articles";
+import { useArticles } from "../hooks/useArticles";
 import { useAppState } from "../state/AppStateContext";
 
 export default function FavoritesPage() {
   const { heartedIds, listsLoading } = useAppState();
-  const favoriteArticles = articles.filter((article) => heartedIds.has(article.id));
+  const { publishedArticles } = useArticles();
+  const favoriteArticles = publishedArticles.filter((article) => heartedIds.has(article.id));
 
   return (
     <section className="page-stack">

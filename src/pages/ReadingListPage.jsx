@@ -1,10 +1,11 @@
 import ArticleCard from "../components/ArticleCard";
-import { articles } from "../data/articles";
+import { useArticles } from "../hooks/useArticles";
 import { useAppState } from "../state/AppStateContext";
 
 export default function ReadingListPage() {
   const { savedIds, listsLoading } = useAppState();
-  const readingList = articles.filter((article) => savedIds.has(article.id));
+  const { publishedArticles } = useArticles();
+  const readingList = publishedArticles.filter((article) => savedIds.has(article.id));
 
   return (
     <section className="page-stack">

@@ -32,6 +32,9 @@ export function AppStateProvider({ children }) {
   const [lastCopiedSlug, setLastCopiedSlug] = useState("");
   const [session, setSession] = useState(null);
   const [user, setUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [articleSettings, setArticleSettings] = useState({});
+  const [adminArticles, setAdminArticles] = useState([]);
   const [authLoading, setAuthLoading] = useState(true);
   const [listsLoading, setListsLoading] = useState(false);
   const [authMessage, setAuthMessage] = useState("");
@@ -60,6 +63,68 @@ export function AppStateProvider({ children }) {
     setHeartedIds(toSet());
     setSavedIds(toSet());
   }, []);
+
+  const loadAdminStatus = useCallback(async (userId) => {
+    if (!userId) {
+      setIsAdmin(false);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("admin_users")
+      .select("user_id")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (error) {
+      setIsAdmin(false);
+      return;
+    }
+
+    setIsAdmin(Boolean(data?.user_id));
+  }, []);
+
+  const loadArticleSettings = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("article_settings")
+      .select("article_slug, is_private, category");
+    if (error) {
+      setArticleSettings({});
+      return;
+    }
+
+    const mapped = {};
+    for (const row of data || []) {
+      if (!row?.article_slug) {
+        continue;
+      }
+      mapped[row.article_slug] = {
+        isPrivate: Boolean(row.is_private),
+        category: row.category || null,
+      };
+    }
+    setArticleSettings(mapped);
+  }, []);
+
+  const loadAdminArticles = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("admin_articles")
+      .select(
+        "slug, title, excerpt, category, author, published_at, read_minutes, trending, draft, is_private, hero_image, body"
+      )
+      .order("published_at", { ascending: false });
+
+    if (error) {
+      setAdminArticles([]);
+      return;
+    }
+
+    setAdminArticles(data || []);
+  }, []);
+
+  const refreshArticleCatalog = useCallback(async () => {
+    await Promise.all([loadArticleSettings(), loadAdminArticles()]);
+  }, [loadArticleSettings, loadAdminArticles]);
 
   const loadUserLists = useCallback(async (userId) => {
     if (!userId) {
@@ -113,8 +178,13 @@ export function AppStateProvider({ children }) {
       setUser(nextUser);
 
       if (nextUser?.id) {
+        await loadAdminStatus(nextUser.id);
         await loadUserLists(nextUser.id);
+        await refreshArticleCatalog();
       } else {
+        setIsAdmin(false);
+        setArticleSettings({});
+        setAdminArticles([]);
         clearUserLists();
       }
 
@@ -131,8 +201,13 @@ export function AppStateProvider({ children }) {
       setUser(nextUser);
 
       if (nextUser?.id) {
+        void loadAdminStatus(nextUser.id);
         void loadUserLists(nextUser.id);
+        void refreshArticleCatalog();
       } else {
+        setIsAdmin(false);
+        setArticleSettings({});
+        setAdminArticles([]);
         clearUserLists();
       }
 
@@ -143,7 +218,7 @@ export function AppStateProvider({ children }) {
       isMounted = false;
       authSubscription.subscription.unsubscribe();
     };
-  }, [clearUserLists, loadUserLists]);
+  }, [clearUserLists, loadAdminStatus, loadUserLists, refreshArticleCatalog]);
 
   const clearAuthMessage = useCallback(() => {
     setAuthMessage("");
@@ -329,6 +404,9 @@ export function AppStateProvider({ children }) {
       theme,
       session,
       user,
+      isAdmin,
+      articleSettings,
+      adminArticles,
       authLoading,
       listsLoading,
       isLoggedIn,
@@ -343,6 +421,7 @@ export function AppStateProvider({ children }) {
       toggleSave,
       copyArticleLink,
       toggleTheme,
+      refreshArticleCatalog,
     }),
     [
       heartedIds,
@@ -351,6 +430,9 @@ export function AppStateProvider({ children }) {
       theme,
       session,
       user,
+      isAdmin,
+      articleSettings,
+      adminArticles,
       authLoading,
       listsLoading,
       isLoggedIn,
@@ -363,6 +445,7 @@ export function AppStateProvider({ children }) {
       signOut,
       toggleHeart,
       toggleSave,
+      refreshArticleCatalog,
     ]
   );
 

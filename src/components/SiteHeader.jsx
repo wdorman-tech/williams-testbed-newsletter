@@ -1,7 +1,8 @@
 import { Link, NavLink } from "react-router-dom";
 import brandMark from "../../photos/blacklily_transparent.png";
+import { useAppState } from "../state/AppStateContext";
 
-const navItems = [
+const baseNavItems = [
   { to: "/", label: "Home", end: true },
   { to: "/favorites", label: "Favorites" },
   { to: "/automation", label: "Automation" },
@@ -14,6 +15,11 @@ const navItems = [
 ];
 
 export default function SiteHeader() {
+  const { isAdmin } = useAppState();
+  const navItems = isAdmin
+    ? [...baseNavItems.slice(0, 8), { to: "/admin", label: "Admin" }, ...baseNavItems.slice(8)]
+    : baseNavItems;
+
   return (
     <header className="site-header">
       <Link to="/" className="brand-name" title="William's Testbed Home">

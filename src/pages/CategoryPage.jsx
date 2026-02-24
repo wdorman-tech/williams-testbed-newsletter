@@ -1,8 +1,9 @@
 import ArticleCard from "../components/ArticleCard";
-import { articles } from "../data/articles";
+import { useArticles } from "../hooks/useArticles";
 
 export default function CategoryPage({ categoryKey, title, description }) {
-  const categoryArticles = articles.filter((article) => article.category === categoryKey);
+  const { getArticlesByCategory } = useArticles();
+  const categoryArticles = getArticlesByCategory(categoryKey);
 
   return (
     <section className="page-stack">
@@ -11,11 +12,15 @@ export default function CategoryPage({ categoryKey, title, description }) {
         <h1>{title}</h1>
         <p>{description}</p>
       </div>
-      <div className="article-grid">
-        {categoryArticles.map((article) => (
-          <ArticleCard key={article.id} article={article} />
-        ))}
-      </div>
+      {categoryArticles.length > 0 ? (
+        <div className="article-grid">
+          {categoryArticles.map((article) => (
+            <ArticleCard key={article.id} article={article} />
+          ))}
+        </div>
+      ) : (
+        <p className="empty-state">No articles in this category yet.</p>
+      )}
     </section>
   );
 }

@@ -8,10 +8,6 @@ export default function InfoPage() {
         <h1>Built by someone who actually ships.</h1>
       </div>
       <div className="info-card">
-        <p>
-          William&apos;s Testbed is a weekly newsletter documenting real AI builds - what worked,
-          what didn&apos;t, and how to apply it to your business.
-        </p>
         <h2>Who&apos;s behind it</h2>
         <p>
           William has built production AI systems for clients most people only read about. An ML
