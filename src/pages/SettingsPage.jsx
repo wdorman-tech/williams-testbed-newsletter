@@ -48,7 +48,7 @@ export default function SettingsPage() {
       setErrorMessage(result.error);
       return;
     }
-    setStatusMessage("Password reset email sent.");
+    setStatusMessage(result?.message || "Password reset email sent. Check your inbox and spam folder.");
   };
 
   const handleSignOut = async () => {

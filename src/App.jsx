@@ -9,7 +9,6 @@ import InfoPage from "./pages/InfoPage";
 import ReadingListPage from "./pages/ReadingListPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import SettingsPage from "./pages/SettingsPage";
-import WorkWithMePage from "./pages/WorkWithMePage";
 import SignupPage from "./pages/SignupPage";
 import EmailPreviewPage from "./pages/EmailPreviewPage";
 import AdminPage from "./pages/AdminPage";
@@ -201,46 +200,6 @@ export default function App() {
                   <AdminPage />
                 </Page>
               </RequireAdmin>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/work-with-me"
-          element={
-            <RequireAuth>
-              <Page>
-                <WorkWithMePage />
-              </Page>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/article/:slug"
-          element={
-            <RequireAuth>
-              <Page>
-                <ArticlePage />
-              </Page>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/preview/article/:slug"
-          element={
-            <RequireAuth>
-              <Page>
-                <ArticlePage allowDrafts />
-              </Page>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/preview/email/:slug"
-          element={
-            <RequireAuth>
-              <Page>
-                <EmailPreviewPage />
-              </Page>
             </RequireAuth>
           }
         />

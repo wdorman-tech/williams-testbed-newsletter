@@ -28,6 +28,7 @@ function buildRedirectPath(path = "") {
 
 export function AppStateProvider({ children }) {
   const [heartedIds, setHeartedIds] = useState(() => toSet());
+  const [heartCountsByArticleId, setHeartCountsByArticleId] = useState({});
   const [savedIds, setSavedIds] = useState(() => toSet());
   const [lastCopiedSlug, setLastCopiedSlug] = useState("");
   const [showCopyToast, setShowCopyToast] = useState(false);
@@ -140,6 +141,25 @@ export function AppStateProvider({ children }) {
   const [trendingArticles, setTrendingArticles] = useState([]);
   const [trendingLoading, setTrendingLoading] = useState(false);
 
+  const loadHeartCounts = useCallback(async () => {
+    const { data, error } = await supabase
+      .from("user_article_lists")
+      .select("article_id")
+      .eq("list_type", LIST_TYPES.favorite);
+
+    if (error) {
+      setHeartCountsByArticleId({});
+      return;
+    }
+
+    const counts = (data || []).reduce((acc, curr) => {
+      acc[curr.article_id] = (acc[curr.article_id] || 0) + 1;
+      return acc;
+    }, {});
+
+    setHeartCountsByArticleId(counts);
+  }, []);
+
   const loadTrendingArticles = useCallback(async () => {
     setTrendingLoading(true);
     const oneWeekAgo = new Date();
@@ -199,6 +219,7 @@ export function AppStateProvider({ children }) {
       }
       await refreshArticleCatalog();
       await loadTrendingArticles();
+      await loadHeartCounts();
 
       if (isMounted) {
         setAuthLoading(false);
@@ -222,6 +243,7 @@ export function AppStateProvider({ children }) {
       }
       void refreshArticleCatalog();
       void loadTrendingArticles();
+      void loadHeartCounts();
 
       setAuthLoading(false);
     });
@@ -230,7 +252,14 @@ export function AppStateProvider({ children }) {
       isMounted = false;
       authSubscription.subscription.unsubscribe();
     };
-  }, [clearUserLists, loadAdminStatus, loadUserLists, refreshArticleCatalog, loadTrendingArticles]);
+  }, [
+    clearUserLists,
+    loadAdminStatus,
+    loadUserLists,
+    refreshArticleCatalog,
+    loadTrendingArticles,
+    loadHeartCounts,
+  ]);
 
   const clearAuthMessage = useCallback(() => {
     setAuthMessage("");
@@ -250,7 +279,10 @@ export function AppStateProvider({ children }) {
       return { error: getMessage(error, "Could not create account.") };
     }
 
-    return { success: true, message: "Check your email to verify your account before logging in." };
+    return {
+      success: true,
+      message: "Check your email (and spam folder) to verify your account before logging in.",
+    };
   }, []);
 
   const signInWithEmailPassword = useCallback(async (email, password) => {
@@ -277,7 +309,7 @@ export function AppStateProvider({ children }) {
       return { error: getMessage(error, "Could not send password reset email.") };
     }
 
-    return { success: true, message: "Password reset email sent. Check your inbox." };
+    return { success: true, message: "Password reset email sent. Check your inbox and spam folder." };
   }, []);
 
   const updatePassword = useCallback(async (nextPassword) => {
@@ -348,6 +380,10 @@ export function AppStateProvider({ children }) {
       }
       return next;
     });
+    setHeartCountsByArticleId((prev) => ({
+      ...prev,
+      [articleId]: Math.max(0, (prev[articleId] || 0) + (wasHearted ? -1 : 1)),
+    }));
 
     const result = await writeListItem(articleId, LIST_TYPES.favorite, !wasHearted);
     if (result.error) {
@@ -360,6 +396,10 @@ export function AppStateProvider({ children }) {
         }
         return reverted;
       });
+      setHeartCountsByArticleId((prev) => ({
+        ...prev,
+        [articleId]: Math.max(0, (prev[articleId] || 0) + (wasHearted ? 1 : -1)),
+      }));
       setAuthMessage(result.error);
     }
   }, [heartedIds, writeListItem]);
@@ -413,6 +453,7 @@ export function AppStateProvider({ children }) {
   const value = useMemo(
     () => ({
       heartedIds,
+      heartCountsByArticleId,
       savedIds,
       lastCopiedSlug,
       showCopyToast,
@@ -441,6 +482,7 @@ export function AppStateProvider({ children }) {
     }),
     [
       heartedIds,
+      heartCountsByArticleId,
       savedIds,
       lastCopiedSlug,
       showCopyToast,

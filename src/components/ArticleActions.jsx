@@ -1,12 +1,21 @@
 import { useAppState } from "../state/AppStateContext";
 
 export default function ArticleActions({ article, compact = false }) {
-  const { heartedIds, savedIds, lastCopiedSlug, toggleHeart, toggleSave, copyArticleLink } =
+  const {
+    heartedIds,
+    heartCountsByArticleId,
+    savedIds,
+    lastCopiedSlug,
+    toggleHeart,
+    toggleSave,
+    copyArticleLink,
+  } =
     useAppState();
 
   const isHearted = heartedIds.has(article.id);
   const isSaved = savedIds.has(article.id);
   const copied = lastCopiedSlug === article.slug;
+  const heartCount = Number(article.heartCount ?? heartCountsByArticleId[article.id] ?? 0);
 
   return (
     <div className={`article-actions ${compact ? "compact" : ""}`}>
@@ -22,17 +31,22 @@ export default function ArticleActions({ article, compact = false }) {
           <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
         </svg>
       </button>
-      <button
-        type="button"
-        className={`action-icon-button ${isHearted ? "is-active is-filled" : ""}`}
-        onClick={() => toggleHeart(article.id)}
-        aria-label={`Heart ${article.title}`}
-        title={isHearted ? "Unheart" : "Heart"}
-      >
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M12 21s-6.6-4.2-9.2-8.2C.7 9.5 2.1 5 6.2 5c2.2 0 3.7 1.4 4.5 2.6C11.5 6.4 13 5 15.2 5c4.1 0 5.5 4.5 3.4 7.8C18.6 12.8 16.1 16.8 12 21z" />
-        </svg>
-      </button>
+      <div className="action-heart-group">
+        <button
+          type="button"
+          className={`action-icon-button ${isHearted ? "is-active is-filled" : ""}`}
+          onClick={() => toggleHeart(article.id)}
+          aria-label={`Heart ${article.title}`}
+          title={isHearted ? "Unheart" : "Heart"}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 21s-6.6-4.2-9.2-8.2C.7 9.5 2.1 5 6.2 5c2.2 0 3.7 1.4 4.5 2.6C11.5 6.4 13 5 15.2 5c4.1 0 5.5 4.5 3.4 7.8C18.6 12.8 16.1 16.8 12 21z" />
+          </svg>
+        </button>
+        <span className="action-count" aria-label={`${heartCount} hearts`}>
+          {heartCount}
+        </span>
+      </div>
       <button
         type="button"
         className={`action-icon-button ${isSaved ? "is-active is-filled" : ""}`}

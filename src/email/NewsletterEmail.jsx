@@ -14,7 +14,6 @@ import {
 export default function NewsletterEmail({
   title,
   excerpt,
-  author,
   publishedAt,
   articleUrl,
   htmlBody,
@@ -28,7 +27,11 @@ export default function NewsletterEmail({
           <Text style={eyebrow}>William&apos;s Testbed</Text>
           <Heading style={heading}>{title}</Heading>
           <Text style={meta}>
-            {author} · {publishedAt}
+            William Dorman{" "}
+            <Link href="https://x.com/williiamdorman" style={metaInlineLink}>
+              X
+            </Link>{" "}
+            · {publishedAt}
           </Text>
           {excerpt ? <Text style={excerptStyle}>{excerpt}</Text> : null}
           <Section style={contentSection}>
@@ -79,6 +82,11 @@ const meta = {
   color: "#666666",
   fontSize: "13px",
   margin: "0 0 14px",
+};
+
+const metaInlineLink = {
+  color: "#2e8b57",
+  textDecoration: "none",
 };
 
 const excerptStyle = {

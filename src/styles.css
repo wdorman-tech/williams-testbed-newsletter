@@ -373,7 +373,17 @@ a:hover {
   padding: 0.5rem 0;
   z-index: 1001;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-  margin-top: 0.5rem;
+  margin-top: 0;
+  padding-top: 0.5rem;
+}
+
+.dropdown-menu::before {
+  content: "";
+  position: absolute;
+  top: -1rem;
+  left: 0;
+  width: 100%;
+  height: 1rem;
 }
 
 .dropdown-item {
@@ -596,6 +606,20 @@ a:hover {
   align-items: center;
   gap: 0.6rem;
   margin-top: 1rem;
+}
+
+.action-heart-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.action-count {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  min-width: 1.2ch;
+  text-align: left;
 }
 
 .ghost-button {

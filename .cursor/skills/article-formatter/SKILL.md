@@ -1,58 +1,51 @@
 ---
-name: article-formatter
-description: Ensures every new or updated .md file in src/content/articles/ strictly adheres to the project's required frontmatter and structure. Use when a new article is created, an existing one is updated, or the user asks to "format this article" or "fix the frontmatter".
+name: newsletter-article-formatter
+description: Converts pasted articles into CMS-ready markdown body for this project and keeps output compatible with react-markdown + newsletter HTML rendering.
 ---
 
-# Article Formatter
+# Newsletter CMS Body Formatter
 
-This skill ensures consistent formatting for all articles in the `src/content/articles/` directory.
+## Task
 
-## Instructions
+When given a pasted article, return cleaned markdown for this project's CMS `Content (Markdown)` textarea.
 
-When an article file in `src/content/articles/` is created or modified, or when requested:
+## Output rules
 
-1.  **Read Template:** Always read `src/content/articles/article-template.md` first to identify the current required keys and format.
-2.  **Analyze Target:** Read the target article file.
-3.  **Reformat Frontmatter:**
-    -   Ensure the file starts with `---` and ends the frontmatter block with `---`.
-    -   **Required Keys & Defaults:**
-        -   `title`: String. If missing, use the first H1 (`# ...`) from the body.
-        -   `excerpt`: String. A short summary sentence.
-        -   `category`: Must be one of: `automation`, `marketing`, `my-workflow`, `my-tools`.
-        -   `publishedAt`: ISO date string (`YYYY-MM-DD`).
-        -   `readMinutes`: Integer. If missing, estimate based on 200 words per minute.
-        -   `author`: Default to "William".
-        -   `draft`: Boolean. Default `true` for new files.
-        -   `trending`: Boolean. Default `false`.
-4.  **Clean Body:** Ensure exactly one newline exists after the closing `---` before the article body starts.
-5.  **Apply Changes:** Update the file with the corrected format.
+- Return only the requested output contents
+- No explanations, no extra text
+- Output body markdown only (no frontmatter)
+- Do not include YAML, metadata keys, or wrapper text
 
-## Examples
+## react-markdown compatibility rules
 
-### Missing Title and ReadMinutes
-**Input:**
+- Use standard markdown only (CommonMark/GFM-safe)
+- Start body headings at `##` (not `#`) because article title is rendered by CMS metadata
+- Keep heading hierarchy valid (`##` then `###`, avoid random jumps)
+- Prefer fenced code blocks with language tags when possible
+- Ensure links are valid markdown: `[label](https://...)`
+- Ensure images are valid markdown: `![alt](https://...)`
+- Do not emit raw HTML unless explicitly requested
+- No JSX, no MDX syntax, no custom component tags
+- Normalize smart quotes/dashes if they break markdown parsing
+- Remove YAML frontmatter if pasted
+- Remove duplicated opening H1 title if present
+
+## Body cleanup
+
+- Preserve paragraphs, lists, quotes, code, and links
+- Fix malformed list markers and broken line wraps
+- Keep tone/content unchanged; only format for correctness/readability
+- Keep one blank line between paragraphs/blocks
+
+## CMS paste guidance
+
+- Output is intended for the CMS body field only
+- Metadata must be filled in CMS inputs (title, slug, excerpt, category, author, publishedAt, readMinutes, trending, draft, isPrivate, heroImage)
+
+## Template
+
 ```markdown
----
-category: "automation"
-excerpt: "A guide to Zapier."
----
-# My Zapier Guide
-This is the body...
-```
+## Section Heading
 
-**Output:**
-```markdown
----
-title: "My Zapier Guide"
-excerpt: "A guide to Zapier."
-category: "automation"
-publishedAt: "2026-02-23"
-readMinutes: 1
-author: "William"
-draft: true
-trending: false
----
-
-# My Zapier Guide
-This is the body...
+Body markdown only, no frontmatter.
 ```
