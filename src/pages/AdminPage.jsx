@@ -451,6 +451,13 @@ export default function AdminPage() {
         </button>
         <button
           type="button"
+          className={`ghost-button ${activeTab === TAB_KEYS.cms ? "is-active" : ""}`}
+          onClick={() => setActiveTab(TAB_KEYS.cms)}
+        >
+          My Tools CMS
+        </button>
+        <button
+          type="button"
           className={`ghost-button ${activeTab === TAB_KEYS.images ? "is-active" : ""}`}
           onClick={() => setActiveTab(TAB_KEYS.images)}
         >
