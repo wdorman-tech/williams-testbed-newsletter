@@ -33,8 +33,7 @@ export function AppStateProvider({ children }) {
   const [session, setSession] = useState(null);
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [articleSettings, setArticleSettings] = useState({});
-  const [adminArticles, setAdminArticles] = useState([]);
+  const [articleIndex, setArticleIndex] = useState([]);
   const [authLoading, setAuthLoading] = useState(true);
   const [listsLoading, setListsLoading] = useState(false);
   const [authMessage, setAuthMessage] = useState("");
@@ -84,47 +83,25 @@ export function AppStateProvider({ children }) {
     setIsAdmin(Boolean(data?.user_id));
   }, []);
 
-  const loadArticleSettings = useCallback(async () => {
+  const loadArticleIndex = useCallback(async () => {
     const { data, error } = await supabase
-      .from("article_settings")
-      .select("article_slug, is_private, category");
-    if (error) {
-      setArticleSettings({});
-      return;
-    }
-
-    const mapped = {};
-    for (const row of data || []) {
-      if (!row?.article_slug) {
-        continue;
-      }
-      mapped[row.article_slug] = {
-        isPrivate: Boolean(row.is_private),
-        category: row.category || null,
-      };
-    }
-    setArticleSettings(mapped);
-  }, []);
-
-  const loadAdminArticles = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("admin_articles")
+      .from("article_index")
       .select(
-        "slug, title, excerpt, category, author, published_at, read_minutes, trending, draft, is_private, hero_image, body"
+        "slug, title, excerpt, category, author, published_at, read_minutes, trending, draft, is_private, hero_image, storage_path"
       )
       .order("published_at", { ascending: false });
 
     if (error) {
-      setAdminArticles([]);
+      setArticleIndex([]);
       return;
     }
 
-    setAdminArticles(data || []);
+    setArticleIndex(data || []);
   }, []);
 
   const refreshArticleCatalog = useCallback(async () => {
-    await Promise.all([loadArticleSettings(), loadAdminArticles()]);
-  }, [loadArticleSettings, loadAdminArticles]);
+    await loadArticleIndex();
+  }, [loadArticleIndex]);
 
   const loadUserLists = useCallback(async (userId) => {
     if (!userId) {
@@ -180,13 +157,12 @@ export function AppStateProvider({ children }) {
       if (nextUser?.id) {
         await loadAdminStatus(nextUser.id);
         await loadUserLists(nextUser.id);
-        await refreshArticleCatalog();
       } else {
         setIsAdmin(false);
-        setArticleSettings({});
-        setAdminArticles([]);
+        setArticleIndex([]);
         clearUserLists();
       }
+      await refreshArticleCatalog();
 
       if (isMounted) {
         setAuthLoading(false);
@@ -203,13 +179,12 @@ export function AppStateProvider({ children }) {
       if (nextUser?.id) {
         void loadAdminStatus(nextUser.id);
         void loadUserLists(nextUser.id);
-        void refreshArticleCatalog();
       } else {
         setIsAdmin(false);
-        setArticleSettings({});
-        setAdminArticles([]);
+        setArticleIndex([]);
         clearUserLists();
       }
+      void refreshArticleCatalog();
 
       setAuthLoading(false);
     });
@@ -405,8 +380,7 @@ export function AppStateProvider({ children }) {
       session,
       user,
       isAdmin,
-      articleSettings,
-      adminArticles,
+      articleIndex,
       authLoading,
       listsLoading,
       isLoggedIn,
@@ -431,8 +405,7 @@ export function AppStateProvider({ children }) {
       session,
       user,
       isAdmin,
-      articleSettings,
-      adminArticles,
+      articleIndex,
       authLoading,
       listsLoading,
       isLoggedIn,

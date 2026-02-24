@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "migrate:articles:bucket": "node --env-file=.env api/migrate-articles-to-bucket.js"
   },
   "dependencies": {
     "@react-email/components": "^0.5.7",

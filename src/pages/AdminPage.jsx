@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { categoryMeta } from "../data/articles";
 import { useArticles } from "../hooks/useArticles";
+import { parseFrontmatter, toMarkdownDocument } from "../lib/articleFormat";
 import { supabase } from "../lib/supabase";
 import { useAppState } from "../state/AppStateContext";
 
@@ -69,7 +70,7 @@ export default function AdminPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedSlug, setSelectedSlug] = useState("");
   const [testEmail, setTestEmail] = useState(user?.email ?? "");
-  const [confirmSlug, setConfirmSlug] = useState("");
+  const [isSendAllConfirmed, setIsSendAllConfirmed] = useState(false);
   const [sendRows, setSendRows] = useState([]);
   const [metricRows, setMetricRows] = useState([]);
   const [manageRows, setManageRows] = useState([]);
@@ -79,7 +80,7 @@ export default function AdminPage() {
   const [storageImages, setStorageImages] = useState([]);
 
   const adminCmsArticles = useMemo(
-    () => articles.filter((article) => article.source === "admin"),
+    () => articles.filter((article) => article.source === "bucket"),
     [articles]
   );
 
@@ -166,7 +167,7 @@ export default function AdminPage() {
     const managementRows = articles.map((article) => ({
       slug: article.slug,
       title: article.title,
-      source: article.source || "markdown",
+      source: article.source || "bucket",
       category: article.category,
       isPrivate: Boolean(article.isPrivate),
     }));
@@ -204,6 +205,10 @@ export default function AdminPage() {
   }, [articles, selectedSlug]);
 
   useEffect(() => {
+    setIsSendAllConfirmed(false);
+  }, [selectedSlug]);
+
+  useEffect(() => {
     void loadAdminData();
     if (activeTab === TAB_KEYS.images) {
       void loadStorageImages();
@@ -239,6 +244,10 @@ export default function AdminPage() {
       setErrorMessage("Select an article first.");
       return;
     }
+    if (!isSendAllConfirmed) {
+      setErrorMessage("Confirm the broadcast send first.");
+      return;
+    }
     setErrorMessage("");
     setStatusMessage("");
     setIsSubmitting(true);
@@ -246,7 +255,7 @@ export default function AdminPage() {
     const response = await fetch("/api/newsletter-send-all", {
       method: "POST",
       headers: authHeaders,
-      body: JSON.stringify({ slug: selectedSlug, confirmationSlug: confirmSlug.trim() }),
+      body: JSON.stringify({ slug: selectedSlug, confirmationSlug: selectedSlug }),
     });
     const payload = await response.json().catch(() => ({}));
     setIsSubmitting(false);
@@ -255,7 +264,7 @@ export default function AdminPage() {
       return;
     }
     setStatusMessage(payload.message || "Newsletter sent.");
-    setConfirmSlug("");
+    setIsSendAllConfirmed(false);
     await loadAdminData();
   };
 
@@ -263,33 +272,17 @@ export default function AdminPage() {
     setErrorMessage("");
     setStatusMessage("");
     setIsSubmitting(true);
-    if (row.source === "admin") {
-      const { error } = await supabase
-        .from("admin_articles")
-        .update({
-          category: row.category,
-          is_private: row.isPrivate,
-        })
-        .eq("slug", row.slug);
-      setIsSubmitting(false);
-      if (error) {
-        setErrorMessage("Could not update admin article.");
-        return;
-      }
-    } else {
-      const { error } = await supabase.from("article_settings").upsert(
-        {
-          article_slug: row.slug,
-          category: row.category,
-          is_private: row.isPrivate,
-        },
-        { onConflict: "article_slug" }
-      );
-      setIsSubmitting(false);
-      if (error) {
-        setErrorMessage("Could not update article settings.");
-        return;
-      }
+    const { error } = await supabase
+      .from("article_index")
+      .update({
+        category: row.category,
+        is_private: row.isPrivate,
+      })
+      .eq("slug", row.slug);
+    setIsSubmitting(false);
+    if (error) {
+      setErrorMessage("Could not update article metadata.");
+      return;
     }
 
     await refreshArticleCatalog();
@@ -306,17 +299,32 @@ export default function AdminPage() {
     });
   };
 
-  const beginEditCmsArticle = (slug) => {
+  const beginEditCmsArticle = async (slug) => {
+    if (!slug) {
+      startNewCmsDraft();
+      return;
+    }
     const article = adminCmsArticles.find((item) => item.slug === slug);
     if (!article) {
       return;
     }
+    let parsedBody = "";
+
+    const storagePath = article.storagePath || `articles/${article.slug}.md`;
+    const { data, error } = await supabase.storage.from("articles").download(storagePath);
+    if (error) {
+      setErrorMessage("Could not load markdown file from storage.");
+    } else {
+      const rawMarkdown = await data.text();
+      parsedBody = parseFrontmatter(rawMarkdown).body || "";
+    }
+
     setEditingCmsSlug(slug);
     setEditorForm({
       slug: article.slug,
       title: article.title,
       excerpt: article.excerpt || "",
-      body: article.body || "",
+      body: parsedBody,
       category: article.category || "my-tools",
       author: article.author || "William",
       publishedAt: toLocalDateTimeInput(article.publishedAt),
@@ -338,22 +346,53 @@ export default function AdminPage() {
     setErrorMessage("");
     setStatusMessage("");
     setIsSubmitting(true);
-    const payload = {
+    const normalized = {
       slug,
       title: editorForm.title.trim(),
       excerpt: editorForm.excerpt.trim(),
       category: editorForm.category,
       author: editorForm.author.trim() || "William",
-      published_at: new Date(editorForm.publishedAt).toISOString(),
-      read_minutes: Number(editorForm.readMinutes || 5),
+      publishedAt: new Date(editorForm.publishedAt).toISOString(),
+      readMinutes: Number(editorForm.readMinutes || 5),
       trending: Boolean(editorForm.trending),
       draft: Boolean(editorForm.draft),
-      is_private: Boolean(editorForm.isPrivate),
-      hero_image: editorForm.heroImage.trim(),
+      isPrivate: Boolean(editorForm.isPrivate),
+      heroImage: editorForm.heroImage.trim(),
       body: editorForm.body,
     };
+    const storagePath = `articles/${slug}.md`;
+    const markdownDocument = toMarkdownDocument(normalized);
+    const markdownBlob = new Blob([markdownDocument], { type: "text/markdown;charset=utf-8" });
 
-    const { error } = await supabase.from("admin_articles").upsert(payload, { onConflict: "slug" });
+    const { error: uploadError } = await supabase.storage
+      .from("articles")
+      .upload(storagePath, markdownBlob, { upsert: true, contentType: "text/markdown" });
+    if (uploadError) {
+      setIsSubmitting(false);
+      setErrorMessage("Could not upload markdown file.");
+      return;
+    }
+
+    const payload = {
+      slug,
+      title: normalized.title,
+      excerpt: normalized.excerpt,
+      category: normalized.category,
+      author: normalized.author,
+      published_at: normalized.publishedAt,
+      read_minutes: normalized.readMinutes,
+      trending: normalized.trending,
+      draft: normalized.draft,
+      is_private: normalized.isPrivate,
+      hero_image: normalized.heroImage,
+      storage_path: storagePath,
+    };
+
+    const { error } = await supabase.from("article_index").upsert(payload, { onConflict: "slug" });
+    if (!error && editingCmsSlug && editingCmsSlug !== slug) {
+      await supabase.storage.from("articles").remove([`articles/${editingCmsSlug}.md`]);
+      await supabase.from("article_index").delete().eq("slug", editingCmsSlug);
+    }
     setIsSubmitting(false);
     if (error) {
       setErrorMessage("Could not save CMS article.");
@@ -374,7 +413,15 @@ export default function AdminPage() {
     setErrorMessage("");
     setStatusMessage("");
     setIsSubmitting(true);
-    const { error } = await supabase.from("admin_articles").delete().eq("slug", editingCmsSlug);
+    const targetArticle = adminCmsArticles.find((item) => item.slug === editingCmsSlug);
+    const storagePath = targetArticle?.storagePath || `articles/${editingCmsSlug}.md`;
+    const { error: storageError } = await supabase.storage.from("articles").remove([storagePath]);
+    if (storageError) {
+      setIsSubmitting(false);
+      setErrorMessage("Could not delete markdown file.");
+      return;
+    }
+    const { error } = await supabase.from("article_index").delete().eq("slug", editingCmsSlug);
     setIsSubmitting(false);
     if (error) {
       setErrorMessage("Could not delete CMS article.");
@@ -526,19 +573,20 @@ export default function AdminPage() {
               <div className="admin-row">
                 <div className="admin-field">
                   <label>Broadcast Send (All Subscribers)</label>
-                  <input
-                    type="text"
-                    className="admin-input"
-                    value={confirmSlug}
-                    onChange={(event) => setConfirmSlug(event.target.value)}
-                    placeholder={`Type slug to confirm: ${selectedSlug}`}
-                  />
+                  <button
+                    type="button"
+                    className="admin-button secondary"
+                    onClick={() => setIsSendAllConfirmed((prev) => !prev)}
+                    disabled={isSubmitting || !selectedSlug}
+                  >
+                    {isSendAllConfirmed ? "Confirmed (Click to Reset)" : "Confirm Broadcast Send"}
+                  </button>
                 </div>
                 <button 
                   type="button" 
                   className="admin-button" 
                   onClick={handleSendAll}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !isSendAllConfirmed}
                   style={{ marginTop: "1.5rem" }}
                 >
                   {isSubmitting ? "Sending..." : "Send To All Subscribers"}
@@ -716,7 +764,9 @@ export default function AdminPage() {
                 <select
                   className="admin-select"
                   value={editingCmsSlug}
-                  onChange={(event) => beginEditCmsArticle(event.target.value)}
+                  onChange={(event) => {
+                    void beginEditCmsArticle(event.target.value);
+                  }}
                   style={{ minWidth: "200px" }}
                 >
                   <option value="">Select existing article</option>

@@ -1,9 +1,10 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import ArticleActions from "../components/ArticleActions";
 import { categoryMeta } from "../data/articles";
 import { useArticles } from "../hooks/useArticles";
+import { parseFrontmatter } from "../lib/articleFormat";
 import { supabase } from "../lib/supabase";
 import { useAppState } from "../state/AppStateContext";
 
@@ -32,6 +33,40 @@ export default function ArticlePage({ allowDrafts = false }) {
   const { slug } = useParams();
   const trackedSlugRef = useRef("");
   const article = getArticleBySlug(slug, { includeDrafts: allowDrafts });
+  const [articleBody, setArticleBody] = useState("");
+  const [isLoadingBody, setIsLoadingBody] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadBody = async () => {
+      if (!article?.storagePath) {
+        setArticleBody(article?.body || "");
+        return;
+      }
+      setIsLoadingBody(true);
+      const { data, error } = await supabase.storage.from("articles").download(article.storagePath);
+      if (!isMounted) {
+        return;
+      }
+      if (error) {
+        setArticleBody("");
+        setIsLoadingBody(false);
+        return;
+      }
+      const rawMarkdown = await data.text();
+      if (!isMounted) {
+        return;
+      }
+      setArticleBody(parseFrontmatter(rawMarkdown).body || "");
+      setIsLoadingBody(false);
+    };
+
+    void loadBody();
+    return () => {
+      isMounted = false;
+    };
+  }, [article?.body, article?.storagePath]);
 
   useEffect(() => {
     if (!slug || allowDrafts || !article || !user?.id) {
@@ -103,7 +138,7 @@ export default function ArticlePage({ allowDrafts = false }) {
         <ArticleActions article={article} compact />
       </div>
       <div className="article-body">
-        <ReactMarkdown>{article.body}</ReactMarkdown>
+        {isLoadingBody ? <p className="empty-state">Loading article...</p> : <ReactMarkdown>{articleBody}</ReactMarkdown>}
       </div>
     </article>
   );

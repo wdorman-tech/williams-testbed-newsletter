@@ -219,3 +219,69 @@ create policy "Admins can write admin articles"
   for all
   using (public.is_admin())
   with check (public.is_admin());
+
+create table if not exists public.article_index (
+  slug text primary key,
+  title text not null,
+  excerpt text not null default '',
+  category text not null check (category in ('automation', 'marketing', 'my-workflow', 'my-tools')),
+  author text not null default 'William',
+  published_at timestamp with time zone not null default timezone('utc'::text, now()),
+  read_minutes integer not null default 5 check (read_minutes > 0),
+  trending boolean not null default false,
+  draft boolean not null default false,
+  is_private boolean not null default false,
+  hero_image text not null default '',
+  storage_path text not null,
+  created_at timestamp with time zone not null default timezone('utc'::text, now()),
+  updated_at timestamp with time zone not null default timezone('utc'::text, now())
+);
+alter table public.article_index enable row level security;
+
+drop trigger if exists trigger_article_index_updated_at on public.article_index;
+create trigger trigger_article_index_updated_at
+before update on public.article_index
+for each row
+execute function public.update_updated_at_column();
+
+drop policy if exists "Authenticated users can read article index" on public.article_index;
+create policy "Authenticated users can read article index"
+  on public.article_index
+  for select
+  using (auth.uid() is not null);
+
+drop policy if exists "Admins can write article index" on public.article_index;
+create policy "Admins can write article index"
+  on public.article_index
+  for all
+  using (public.is_admin())
+  with check (public.is_admin());
+
+insert into storage.buckets (id, name, public)
+values ('articles', 'articles', false)
+on conflict (id) do nothing;
+
+drop policy if exists "Authenticated users can read article markdown" on storage.objects;
+create policy "Authenticated users can read article markdown"
+  on storage.objects
+  for select
+  using (bucket_id = 'articles' and auth.uid() is not null);
+
+drop policy if exists "Admins can insert article markdown" on storage.objects;
+create policy "Admins can insert article markdown"
+  on storage.objects
+  for insert
+  with check (bucket_id = 'articles' and public.is_admin());
+
+drop policy if exists "Admins can update article markdown" on storage.objects;
+create policy "Admins can update article markdown"
+  on storage.objects
+  for update
+  using (bucket_id = 'articles' and public.is_admin())
+  with check (bucket_id = 'articles' and public.is_admin());
+
+drop policy if exists "Admins can delete article markdown" on storage.objects;
+create policy "Admins can delete article markdown"
+  on storage.objects
+  for delete
+  using (bucket_id = 'articles' and public.is_admin());
