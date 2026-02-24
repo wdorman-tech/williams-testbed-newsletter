@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import ArticleCard from "../components/ArticleCard";
 import { useArticles } from "../hooks/useArticles";
@@ -8,13 +9,14 @@ function sortByDateDesc(list) {
 }
 
 export default function HomePage() {
-  const { savedIds, listsLoading } = useAppState();
+  const { savedIds, listsLoading, trendingArticles: trendingIds, trendingLoading } = useAppState();
   const { publishedArticles } = useArticles();
 
   const recentArticles = sortByDateDesc(publishedArticles).slice(0, 4);
-  const trendingArticles = sortByDateDesc(
-    publishedArticles.filter((article) => article.trending)
-  ).slice(0, 3);
+  const trendingArticles = useMemo(() => {
+    const idSet = new Set(trendingIds);
+    return publishedArticles.filter((article) => idSet.has(article.id)).slice(0, 3);
+  }, [publishedArticles, trendingIds]);
   const savedArticles = sortByDateDesc(publishedArticles.filter((article) => savedIds.has(article.id)));
 
   return (
@@ -44,7 +46,9 @@ export default function HomePage() {
 
         <section className="section-block">
           <h2 className="section-title">Trending</h2>
-          {trendingArticles.length > 0 ? (
+          {trendingLoading ? (
+            <p className="empty-state">Loading trending articles...</p>
+          ) : trendingArticles.length > 0 ? (
             <div className="article-grid">
               {trendingArticles.map((article) => (
                 <ArticleCard key={article.id} article={article} />

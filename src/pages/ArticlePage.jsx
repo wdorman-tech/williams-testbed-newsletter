@@ -69,7 +69,7 @@ export default function ArticlePage({ allowDrafts = false }) {
   }, [article?.body, article?.storagePath]);
 
   useEffect(() => {
-    if (!slug || allowDrafts || !article || !user?.id) {
+    if (!slug || allowDrafts || !article) {
       return;
     }
 
@@ -103,10 +103,10 @@ export default function ArticlePage({ allowDrafts = false }) {
 
     void supabase.from("article_views").insert({
       article_slug: slug,
-      user_id: user.id,
+      user_id: user?.id || null,
       session_key: sessionKey,
     });
-  }, [allowDrafts, article, slug, user?.id]);
+  }, [allowDrafts, article, slug, user]);
 
   if (!slug) {
     return <Navigate to="/" replace />;

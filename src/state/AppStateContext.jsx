@@ -30,6 +30,7 @@ export function AppStateProvider({ children }) {
   const [heartedIds, setHeartedIds] = useState(() => toSet());
   const [savedIds, setSavedIds] = useState(() => toSet());
   const [lastCopiedSlug, setLastCopiedSlug] = useState("");
+  const [showCopyToast, setShowCopyToast] = useState(false);
   const [session, setSession] = useState(null);
   const [user, setUser] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -136,6 +137,40 @@ export function AppStateProvider({ children }) {
     setListsLoading(false);
   }, [clearUserLists]);
 
+  const [trendingArticles, setTrendingArticles] = useState([]);
+  const [trendingLoading, setTrendingLoading] = useState(false);
+
+  const loadTrendingArticles = useCallback(async () => {
+    setTrendingLoading(true);
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+    const { data, error } = await supabase
+      .from("user_article_lists")
+      .select("article_id")
+      .eq("list_type", LIST_TYPES.favorite)
+      .gte("inserted_at", oneWeekAgo.toISOString());
+
+    if (error) {
+      setTrendingArticles([]);
+      setTrendingLoading(false);
+      return;
+    }
+
+    const counts = (data || []).reduce((acc, curr) => {
+      acc[curr.article_id] = (acc[curr.article_id] || 0) + 1;
+      return acc;
+    }, {});
+
+    const topIds = Object.entries(counts)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 3)
+      .map(([id]) => id);
+
+    setTrendingArticles(topIds);
+    setTrendingLoading(false);
+  }, []);
+
   useEffect(() => {
     let isMounted = true;
 
@@ -163,6 +198,7 @@ export function AppStateProvider({ children }) {
         clearUserLists();
       }
       await refreshArticleCatalog();
+      await loadTrendingArticles();
 
       if (isMounted) {
         setAuthLoading(false);
@@ -185,6 +221,7 @@ export function AppStateProvider({ children }) {
         clearUserLists();
       }
       void refreshArticleCatalog();
+      void loadTrendingArticles();
 
       setAuthLoading(false);
     });
@@ -193,7 +230,7 @@ export function AppStateProvider({ children }) {
       isMounted = false;
       authSubscription.subscription.unsubscribe();
     };
-  }, [clearUserLists, loadAdminStatus, loadUserLists, refreshArticleCatalog]);
+  }, [clearUserLists, loadAdminStatus, loadUserLists, refreshArticleCatalog, loadTrendingArticles]);
 
   const clearAuthMessage = useCallback(() => {
     setAuthMessage("");
@@ -369,6 +406,8 @@ export function AppStateProvider({ children }) {
       document.body.removeChild(textArea);
     }
     setLastCopiedSlug(slug);
+    setShowCopyToast(true);
+    setTimeout(() => setShowCopyToast(false), 2000);
   };
 
   const value = useMemo(
@@ -376,6 +415,7 @@ export function AppStateProvider({ children }) {
       heartedIds,
       savedIds,
       lastCopiedSlug,
+      showCopyToast,
       theme,
       session,
       user,
@@ -385,6 +425,8 @@ export function AppStateProvider({ children }) {
       listsLoading,
       isLoggedIn,
       authMessage,
+      trendingArticles,
+      trendingLoading,
       clearAuthMessage,
       signUpWithEmailPassword,
       signInWithEmailPassword,
@@ -401,6 +443,7 @@ export function AppStateProvider({ children }) {
       heartedIds,
       savedIds,
       lastCopiedSlug,
+      showCopyToast,
       theme,
       session,
       user,
@@ -410,6 +453,8 @@ export function AppStateProvider({ children }) {
       listsLoading,
       isLoggedIn,
       authMessage,
+      trendingArticles,
+      trendingLoading,
       clearAuthMessage,
       signUpWithEmailPassword,
       signInWithEmailPassword,

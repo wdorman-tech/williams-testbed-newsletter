@@ -28,7 +28,7 @@ export default function InfoPage() {
           talk about it.
         </p>
         <p>
-          Need this built for your business? <Link to="/work-with-me">Work with me -&gt;</Link>
+          Need this built for your business? <a href="https://blacklilyaccelerator.com" target="_blank" rel="noopener noreferrer">Work with me -&gt;</a>
         </p>
       </div>
     </section>

@@ -49,7 +49,7 @@ function RequireAdmin({ children }) {
 }
 
 export default function App() {
-  const { theme } = useAppState();
+  const { theme, showCopyToast } = useAppState();
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -246,6 +246,8 @@ export default function App() {
         />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+
+      <div className={`copy-toast ${showCopyToast ? "is-visible" : ""}`}>Link copied</div>
     </>
   );
 }

@@ -134,11 +134,11 @@ create policy "Admins can read all user article lists"
   for select
   using (public.is_admin());
 
-drop policy if exists "Authenticated users can insert article views" on public.article_views;
-create policy "Authenticated users can insert article views"
+drop policy if exists "Anyone can insert article views" on public.article_views;
+create policy "Anyone can insert article views"
   on public.article_views
   for insert
-  with check (auth.uid() is not null);
+  with check (true);
 
 drop policy if exists "Admins can read article views" on public.article_views;
 create policy "Admins can read article views"
