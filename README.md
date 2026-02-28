@@ -38,6 +38,8 @@ Server/runtime:
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `RESEND_API_KEY`
 - `NEWSLETTER_FROM_EMAIL`
+- `NEW_SUBSCRIBER_WEBHOOK_SECRET` (shared secret expected by `/api/newsletter-new-subscriber-alert`)
+- `NEW_SUBSCRIBER_ALERT_TO` (optional, defaults to `wdorman26@gmail.com`)
 - `NEWSLETTER_ADMIN_EMAILS` (same comma-separated admin list on server)
 - `NEWSLETTER_SITE_URL` (e.g. `https://yourdomain.com`)
 
@@ -49,3 +51,14 @@ Server/runtime:
   - `newsletter_subscribers`
   - `newsletter_sends`
   - auth-user email sync trigger into `newsletter_subscribers`
+
+## 7) New-subscriber alert setup
+
+After applying `supabase/schema.sql`, set these DB settings in Supabase SQL Editor so insert triggers can call your API endpoint:
+
+```sql
+alter database postgres set app.settings.newsletter_alert_webhook_url = 'https://<your-domain>/api/newsletter-new-subscriber-alert';
+alter database postgres set app.settings.newsletter_alert_webhook_secret = '<same value as NEW_SUBSCRIBER_WEBHOOK_SECRET>';
+```
+
+This sends an alert email (subscriber email + signup timestamp) whenever a new row is inserted into `newsletter_subscribers`.

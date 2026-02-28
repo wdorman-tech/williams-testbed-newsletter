@@ -93,6 +93,44 @@ where email is not null
 on conflict (email) do update
 set user_id = excluded.user_id;
 
+create extension if not exists pg_net with schema extensions;
+
+create or replace function public.notify_new_newsletter_subscriber()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  webhook_url text := current_setting('app.settings.newsletter_alert_webhook_url', true);
+  webhook_secret text := current_setting('app.settings.newsletter_alert_webhook_secret', true);
+begin
+  if webhook_url is null or webhook_url = '' then
+    return new;
+  end if;
+
+  perform net.http_post(
+    url := webhook_url,
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'x-newsletter-webhook-secret', coalesce(webhook_secret, '')
+    ),
+    body := jsonb_build_object(
+      'email', new.email,
+      'inserted_at', new.inserted_at
+    )
+  );
+
+  return new;
+end;
+$$;
+
+drop trigger if exists trigger_newsletter_subscriber_created_alert on public.newsletter_subscribers;
+create trigger trigger_newsletter_subscriber_created_alert
+after insert on public.newsletter_subscribers
+for each row
+execute function public.notify_new_newsletter_subscriber();
+
 create table if not exists public.admin_users (
   user_id uuid primary key references auth.users(id) on delete cascade,
   inserted_at timestamp with time zone not null default timezone('utc'::text, now())

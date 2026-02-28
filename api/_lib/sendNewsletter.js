@@ -40,3 +40,16 @@ export async function sendNewsletterToSubscribers({ subscribers, subject, html }
 
   return { sentCount };
 }
+
+export async function sendNewSubscriberAlert({ subscriberEmail, insertedAt, to }) {
+  const resend = createResendClient();
+  const timestamp = new Date(insertedAt);
+  const safeTimestamp = Number.isNaN(timestamp.getTime()) ? String(insertedAt) : timestamp.toISOString();
+
+  return resend.emails.send({
+    from: requireEnv("NEWSLETTER_FROM_EMAIL"),
+    to,
+    subject: "New newsletter subscriber",
+    html: `<p>A new newsletter subscriber was added.</p><p><strong>Email:</strong> ${subscriberEmail}</p><p><strong>Subscribed at:</strong> ${safeTimestamp}</p>`,
+  });
+}
